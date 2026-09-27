@@ -64,6 +64,10 @@
   .fuer-rezept { color: #6b3fa0; font-weight: 700; }
   .delete-btn { background: none; border: none; color: #ccc; font-size: 1.1em; cursor: pointer; padding: 2px 4px; border-radius: 4px; flex-shrink: 0; transition: color 0.15s; align-self: center; }
   .delete-btn:hover { color: #dc2626; }
+  .item-actions { display: flex; gap: 2px; align-self: center; flex-shrink: 0; }
+  .item-act-btn { background: none; border: none; font-size: 1em; cursor: pointer; padding: 2px 3px; border-radius: 4px; opacity: 0.55; line-height: 1.2; transition: opacity 0.15s, background 0.15s; }
+  .item-act-btn:hover { opacity: 1; background: #f0f4f8; }
+  .item-meta .item-menge:not(:last-child)::after { content: ' · '; }
 
   .tag { display: inline-block; border-radius: 4px; padding: 1px 6px; font-size: 0.72em; font-weight: 700; margin-right: 3px; }
   .tag-vegan   { background: #d4edda; color: #155724; }
@@ -170,6 +174,36 @@
     <div class="modal-actions">
       <button class="modal-btn-cancel" onclick="closeModal('modalArtikel')">Abbrechen</button>
       <button class="modal-btn-primary" onclick="saveArtikel()">Hinzufügen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Artikel bearbeiten (Name & Menge) -->
+<div class="modal-overlay" id="modalItemEdit">
+  <div class="modal">
+    <h2 id="modalItemEditTitle">✏️ Artikel bearbeiten</h2>
+    <input type="hidden" id="editItemId">
+    <label>Name *</label>
+    <input type="text" id="editItemName" placeholder="z.B. Pasta, Bier, Sonnencreme…">
+    <label>Menge</label>
+    <input type="text" id="editItemMenge" placeholder="z.B. 500 g, 2 Flaschen">
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modalItemEdit')">Abbrechen</button>
+      <button class="modal-btn-primary" onclick="saveItemEdit()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Mitbringer setzen/entfernen -->
+<div class="modal-overlay" id="modalItemMb">
+  <div class="modal">
+    <h2>🧳 Bringt jemand mit?</h2>
+    <input type="hidden" id="mbItemId">
+    <label>Name der Person (leer lassen = entfernen)</label>
+    <input type="text" id="mbItemPerson" placeholder="z.B. Florian">
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modalItemMb')">Abbrechen</button>
+      <button class="modal-btn-primary" onclick="saveItemMb()">Speichern</button>
     </div>
   </div>
 </div>
@@ -323,7 +357,7 @@
   <div class="checkbox" onclick="toggleItem('e_10')"></div>
   <div class="item-info" onclick="toggleItem('e_10')"><div class="item-name">Gewürze (Paprika, Curry, Oregano, Chili, Kreuzkümmel)</div><div class='item-meta'>je 1 Tüte</div></div>
   <button class="delete-btn" onclick="deleteItem('e_10', event)" title="Entfernen">🗑</button>
-</div></div><div class="section" id="section-Frisches"><div class="section-header hdr-orange">🌅 Frisches ⚠️ – nur erste 3 Tage<span class="badge">0/7</span><button class="add-btn-sec" onclick="openAddArtikel('Frisches', '🌅 Frisches ⚠️ – nur erste 3 Tage')" title="Hinzufügen">＋</button></div><div class="item rezept-fresh-r0" id="item_e_44" style="display:none; background:#fff8e1;">
+</div></div><div class="section" id="section-Frisches"><div class="section-header hdr-orange">🌅 Frisches ⚠️ – nur die nächsten 2 Tage<span class="badge">0/7</span><button class="add-btn-sec" onclick="openAddArtikel('Frisches', '🌅 Frisches ⚠️ – nur die nächsten 2 Tage')" title="Hinzufügen">＋</button></div><div class="item rezept-fresh-r0" id="item_e_44" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_44')"></div>
   <div class="item-info" onclick="toggleItem('e_44')">
     <div class="item-name">Hühnchenbrust 1,2 kg</div>
@@ -625,7 +659,7 @@ function deleteItem(id, event) {
 function resetAll() {
   if (confirm('Alle Häkchen zurücksetzen? (Gelöschte Artikel bleiben entfernt)')) {
     const state = getState();
-    Object.keys(state).forEach(k => { if (!k.startsWith('del_') && !k.startsWith('rezept_') && !k.startsWith('dyn_')) delete state[k]; });
+    Object.keys(state).forEach(k => { if (!k.startsWith('del_') && !k.startsWith('rezept_') && !k.startsWith('dyn_') && !k.startsWith('edit_') && !k.startsWith('mb_')) delete state[k]; });
     setState(state);
     document.querySelectorAll('.item:not(.deleted)').forEach(i => i.classList.remove('checked'));
     updateProgress();
@@ -644,6 +678,180 @@ function openModal(id) {
 }
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
+}
+
+/* ── FRISCHES-SEKTION (genau eine) ──────────────────────────────────────
+   Liefert IMMER die vorhandene Frisches-Sektion (hdr-orange) aus dem
+   Einkauf-Tab (vom Generator erzeugt). Nur wenn keine existiert, wird
+   eine mit demselben Titel angelegt. */
+function getOrCreateFrischesSection() {
+  let fs = document.querySelector('#tab-einkauf .section-header.hdr-orange');
+  if (fs) return fs.closest('.section');
+  fs = document.getElementById('section-rezept-fresh-dyn');
+  if (fs) {
+    // Falls eine Alt-Sektion existiert: Titel korrigieren, nicht neu anlegen
+    const h = fs.querySelector('.section-header');
+    if (h) { h.className = 'section-header hdr-orange'; h.innerHTML = '🌅 Frisches ⚠️ – nur die nächsten 2 Tage<span class="badge">0/0</span>'; }
+    return fs;
+  }
+  const panel = document.getElementById('tab-einkauf');
+  fs = document.createElement('div');
+  fs.className = 'section';
+  fs.id = 'section-rezept-fresh-dyn';
+  fs.innerHTML = '<div class="section-header hdr-orange">🌅 Frisches ⚠️ – nur die nächsten 2 Tage<span class="badge">0/0</span></div>';
+  panel.insertBefore(fs, panel.querySelector('.reset-btn'));
+  return fs;
+}
+
+/* ── ITEM-META NORMALISIEREN ────────────────────────────────────────────
+   Lagert die führende Mengenangabe in ein <span class="item-menge"> aus,
+   damit sie später per Edit sauber ersetzt werden kann. */
+function normalizeItemMeta(el) {
+  const metaEl = el.querySelector('.item-meta');
+  if (!metaEl || metaEl.querySelector('.item-menge')) return;
+  let leading = '';
+  let seenEl = false;
+  const rest = [];
+  [...metaEl.childNodes].forEach(n => {
+    if (!seenEl && n.nodeType === 3) { leading += n.textContent; }
+    else { seenEl = true; rest.push(n); }
+  });
+  leading = leading.replace(/\s*·\s*$/, '').replace(/^\s*·\s*/, '').trim();
+  metaEl.innerHTML = '';
+  if (leading) {
+    const mEl = document.createElement('span');
+    mEl.className = 'item-menge';
+    mEl.textContent = leading;
+    metaEl.appendChild(mEl);
+  }
+  rest.forEach(n => metaEl.appendChild(n));
+}
+
+/* Setzt/ersetzt die Mengenangabe eines Items. */
+function setItemMengeEl(el, menge) {
+  const info = el.querySelector('.item-info');
+  if (!info) return;
+  let metaEl = el.querySelector('.item-meta');
+  let mEl = metaEl ? metaEl.querySelector('.item-menge') : null;
+  if (!menge) { if (mEl) mEl.remove(); return; }
+  if (!metaEl) { metaEl = document.createElement('div'); metaEl.className = 'item-meta'; info.appendChild(metaEl); }
+  if (!mEl) { mEl = document.createElement('span'); mEl.className = 'item-menge'; metaEl.insertBefore(mEl, metaEl.firstChild); }
+  mEl.textContent = menge;
+}
+
+/* Setzt/entfernt das Mitbringer-Badge eines Items. */
+function applyMitbringerBadge(el, person) {
+  if (!el) return;
+  const existing = el.querySelectorAll('.item-meta .mitbringer');
+  if (person) {
+    let metaEl = el.querySelector('.item-meta');
+    if (!metaEl) {
+      const info = el.querySelector('.item-info');
+      if (!info) return;
+      metaEl = document.createElement('div'); metaEl.className = 'item-meta'; info.appendChild(metaEl);
+    }
+    if (existing.length === 0) {
+      const b = document.createElement('span'); b.className = 'mitbringer'; b.textContent = '🧳 ' + person;
+      metaEl.appendChild(b);
+    } else {
+      existing[0].textContent = '🧳 ' + person;
+      for (let i = 1; i < existing.length; i++) existing[i].remove();
+    }
+  } else {
+    existing.forEach(b => b.remove());
+  }
+}
+
+/* Wendet gespeicherte Edit-/Mitbringer-Overrides auf ein Item an. */
+function applyItemOverrides(id) {
+  const el = document.getElementById('item_' + id);
+  if (!el) return;
+  const state = getState();
+  const ed = state['edit_' + id];
+  if (ed) {
+    if (typeof ed.name === 'string' && ed.name) {
+      const nameEl = el.querySelector('.item-name');
+      if (nameEl) nameEl.textContent = ed.name;
+    }
+    if (typeof ed.menge === 'string') setItemMengeEl(el, ed.menge);
+  }
+  if (Object.prototype.hasOwnProperty.call(state, 'mb_' + id)) {
+    applyMitbringerBadge(el, state['mb_' + id]);
+  }
+}
+
+/* Rüstet eine Item-Zeile mit ✏️- und 🧳-Buttons aus. */
+function enhanceItem(id) {
+  const el = document.getElementById('item_' + id);
+  if (!el || el.dataset.smutjeEnhanced) return;
+  el.dataset.smutjeEnhanced = '1';
+  normalizeItemMeta(el);
+  const btnWrap = document.createElement('div');
+  btnWrap.className = 'item-actions';
+  const editBtn = document.createElement('button');
+  editBtn.type = 'button'; editBtn.className = 'item-act-btn'; editBtn.title = 'Name & Menge bearbeiten'; editBtn.textContent = '✏️';
+  editBtn.onclick = function(e) { e.stopPropagation(); openItemEdit(id); };
+  const mbBtn = document.createElement('button');
+  mbBtn.type = 'button'; mbBtn.className = 'item-act-btn'; mbBtn.title = 'Mitbringer setzen/entfernen'; mbBtn.textContent = '🧳';
+  mbBtn.onclick = function(e) { e.stopPropagation(); openMitbringerItem(id); };
+  btnWrap.appendChild(editBtn);
+  btnWrap.appendChild(mbBtn);
+  const del = el.querySelector('.delete-btn');
+  if (del) el.insertBefore(btnWrap, del); else el.appendChild(btnWrap);
+  applyItemOverrides(id);
+}
+
+function enhanceAllEinkaufItems() {
+  document.querySelectorAll('#tab-einkauf .item').forEach(item => {
+    if (item.id && item.id.indexOf('item_') === 0) enhanceItem(item.id.slice(5));
+  });
+}
+
+/* ✏️ Name & Menge bearbeiten */
+function openItemEdit(id) {
+  const state = getState();
+  if (state['del_' + id]) return;
+  const el = document.getElementById('item_' + id);
+  const ed = state['edit_' + id] || {};
+  const nameEl = el ? el.querySelector('.item-name') : null;
+  const mEl = el ? el.querySelector('.item-menge') : null;
+  document.getElementById('editItemId').value = id;
+  document.getElementById('editItemName').value = (ed.name != null ? ed.name : (nameEl ? nameEl.textContent : ''));
+  document.getElementById('editItemMenge').value = (ed.menge != null ? ed.menge : (mEl ? mEl.textContent : ''));
+  openModal('modalItemEdit');
+}
+
+function saveItemEdit() {
+  const id = document.getElementById('editItemId').value;
+  const state = getState();
+  if (state['del_' + id]) { closeModal('modalItemEdit'); return; }
+  const name = document.getElementById('editItemName').value.trim();
+  if (!name) { alert('Bitte einen Namen eingeben.'); return; }
+  const menge = document.getElementById('editItemMenge').value.trim();
+  state['edit_' + id] = { name, menge };
+  setState(state);
+  applyItemOverrides(id);
+  closeModal('modalItemEdit');
+}
+
+/* 🧳 Mitbringer setzen/entfernen */
+function openMitbringerItem(id) {
+  const state = getState();
+  if (state['del_' + id]) return;
+  document.getElementById('mbItemId').value = id;
+  document.getElementById('mbItemPerson').value = state['mb_' + id] || '';
+  openModal('modalItemMb');
+}
+
+function saveItemMb() {
+  const id = document.getElementById('mbItemId').value;
+  const state = getState();
+  if (state['del_' + id]) { closeModal('modalItemMb'); return; }
+  const person = document.getElementById('mbItemPerson').value.trim();
+  state['mb_' + id] = person;
+  setState(state);
+  applyMitbringerBadge(document.getElementById('item_' + id), person);
+  closeModal('modalItemMb');
 }
 
 // Artikel zu einer Sektion hinzufügen
@@ -697,6 +905,7 @@ function saveArtikel() {
     </div>
     <button class="delete-btn" onclick="deleteItem('${id}', event)" title="Entfernen">🗑</button>`;
   section.appendChild(item);
+  enhanceItem(id);
 
   // In State speichern
   const state = getState();
@@ -912,16 +1121,8 @@ function saveRezept() {
 
   document.getElementById('rezepte-extra').appendChild(card);
 
-  // Alle Zutaten als versteckte Items anlegen (frische + haltbare)
-  let section = document.getElementById('section-rezept-fresh-dyn');
-  if (!section) {
-    section = document.createElement('div');
-    section.className = 'section';
-    section.id = 'section-rezept-fresh-dyn';
-    section.innerHTML = `<div class="section-header hdr-orange">🌅 Frisches ⚠️ – Rezept-Zutaten<span class="badge">0/0</span></div>`;
-    const panel = document.getElementById('tab-einkauf');
-    panel.insertBefore(section, panel.querySelector('.reset-btn'));
-  }
+  // Alle Zutaten als versteckte Items in die (einzige) Frisches-Sektion legen
+  const section = getOrCreateFrischesSection();
 
   allZutaten.forEach((z, i) => {
     const fid = rid + '_f' + i;
@@ -938,6 +1139,7 @@ function saveRezept() {
       </div>
       <button class="delete-btn" onclick="deleteItem('${fid}', event)" title="Entfernen">🗑</button>`;
     section.appendChild(fitem);
+    enhanceItem(fid);
   });
 
   const state = getState();
@@ -1364,16 +1566,7 @@ function restoreDynamicItems(state) {
 
     // Zutaten-Items
     // Bestehende hdr-orange Sektion (vom Generator) nutzen, keine neue anlegen
-    let fs = document.querySelector('#tab-einkauf .hdr-orange')?.closest('.section');
-    if (!fs) {
-      fs = document.getElementById('section-rezept-fresh-dyn');
-    }
-    if (!fs) {
-      fs = document.createElement('div'); fs.className = 'section'; fs.id = 'section-rezept-fresh-dyn';
-      fs.innerHTML = '<div class="section-header hdr-orange">🌅 Frisches ⚠️ – Rezept-Zutaten<span class="badge">0/0</span></div>';
-      const panel = document.getElementById('tab-einkauf');
-      panel.insertBefore(fs, panel.querySelector('.reset-btn'));
-    }
+    const fs = getOrCreateFrischesSection();
     d.zutaten.forEach((z, i) => {
       const fid = rid + '_f' + i;
       if (document.getElementById('item_' + fid)) return;
@@ -1382,8 +1575,11 @@ function restoreDynamicItems(state) {
       fi.style.background = z.isFresh ? '#fff8e1' : '#f8f8ff';
       fi.innerHTML = '<div class="checkbox" onclick="toggleItem(\'' + fid + '\')"></div><div class="item-info" onclick="toggleItem(\'' + fid + '\')"><div class="item-name">' + z.name + (z.menge ? ' \u2013 ' + z.menge : '') + '</div><div class="item-meta"><span class="fuer-rezept">\u{1F37D}\uFE0F f\u00fcr: ' + d.titel + '</span>' + (z.isFresh ? ' \u00b7 <span style="color:#e85d04;font-weight:700;">\u26a0\uFE0F Frischware</span>' : '') + '</div></div><button class="delete-btn" onclick="deleteItem(\'' + fid + '\', event)" title="Entfernen">\u{1F5D1}</button>';
       fs.appendChild(fi);
+      enhanceItem(fid);
     });
   });
+
+  enhanceAllEinkaufItems();
 }
 
 window.onload = async function() {
@@ -1395,6 +1591,7 @@ window.onload = async function() {
   const state = getState();
   restoreDynamicItems(state);
   restoreReservierungen(state);
+  enhanceAllEinkaufItems();
 
   // Statische Rezepte: Edits und Löschungen wiederherstellen
   Object.keys(state).forEach(k => {
