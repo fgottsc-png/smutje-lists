@@ -13,7 +13,7 @@
   #splash { position: fixed; inset: 0; background: #f2c60d; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; padding: 32px 24px; text-align: center; }
   #splash img.splash-logo { width: 160px; height: 160px; object-fit: contain; margin-bottom: 28px; }
   #splash .splash-presented { font-size: 0.95em; color: #1a3a5c; opacity: 0.75; margin-bottom: 6px; }
-  #splash .splash-sponsor { font-family: 'Lobster', cursive; font-size: 1.6em; color: #1a3a5c; line-height: 1.3; margin-bottom: 32px; }
+  #splash .splash-sponsor { font-family: Arial, sans-serif; font-size: 1.4em; font-weight: 700; color: #1a3a5c; line-height: 1.3; margin-bottom: 32px; }
   #splash .splash-sponsor a { color: #1a3a5c; text-decoration: underline; text-decoration-color: rgba(26,58,92,0.4); }
   #splash .splash-btn { background: #1a3a5c; color: #f2c60d; font-family: 'Open Sans', sans-serif; font-weight: 700; font-size: 1em; border: none; border-radius: 12px; padding: 14px 36px; cursor: pointer; letter-spacing: 0.05em; box-shadow: 0 4px 12px rgba(26,58,92,0.25); }
 
@@ -197,8 +197,6 @@
     <div class="wizard-step active" id="wstep1">
       <label>Gerichtname *</label>
       <input type="text" id="rzTitel" placeholder="z.B. Pasta Napoli, Fischcurry…">
-      <label>Für welchen Abend?</label>
-      <input type="text" id="rzTag" placeholder="z.B. Dienstag, Abend 3, nach Wahl…">
       <label>Koch / Köchin</label>
       <input type="text" id="rzKoch" placeholder="Wer kocht das Gericht?">
       <label>Für wie viele Personen ist das Rezept ursprünglich?</label>
@@ -512,7 +510,7 @@
 <footer>Erstellt von Smutje · seebaertv ⚓ · Stand: 27.09.2026</footer>
 
 <script>
-const LIST_ID = '2dcadf39';
+const LIST_ID = 'a0fbbb8f';
 const CREW_ANZAHL = 6;
 let dynamicItemCounter = 10000;
 let currentKategorie = '';
@@ -694,7 +692,6 @@ function openRezeptWizard() {
   wCurrentStep = 1;
   zutaten = [];
   document.getElementById('rzTitel').value = '';
-  document.getElementById('rzTag').value = '';
   document.getElementById('rzKoch').value = '';
   document.getElementById('rzPersonen').value = CREW_ANZAHL;
   document.getElementById('rzAnpassung').value = '';
@@ -767,10 +764,8 @@ function collectZutaten() {
 
 function buildVorschau() {
   const titel = document.getElementById('rzTitel').value;
-  const tag = document.getElementById('rzTag').value;
   const koch = document.getElementById('rzKoch').value;
   let html = `<strong>${titel}</strong>`;
-  if (tag) html += ` · ${tag}`;
   if (koch) html += ` · Koch: ${koch}`;
   html += '<br><br>';
   zutaten.forEach(z => {
@@ -783,16 +778,39 @@ function buildVorschau() {
   document.getElementById('rzVorschau').innerHTML = html;
 }
 
+// Sammle alle Artikelnamen die bereits auf der Einkaufsliste stehen (sichtbar, nicht gelöscht)
+function getExistingItemNames() {
+  const names = new Set();
+  document.querySelectorAll('.item:not(.deleted) .item-name').forEach(el => {
+    names.add(el.textContent.trim().toLowerCase());
+  });
+  return names;
+}
+
+// Prüfe ob eine Zutat bereits einer anderen Rezept-ID zugewiesen ist
+function isZutatAlreadyAssigned(zutatName) {
+  const state = getState();
+  for (const key of Object.keys(state)) {
+    if (key.startsWith('rezept_eingeplant_') && state[key]) {
+      const rid = key.replace('rezept_eingeplant_', '');
+      const rdata = state['dyn_rezept_' + rid];
+      if (rdata && rdata.zutaten) {
+        for (const z of rdata.zutaten) {
+          if (z.name.toLowerCase() === zutatName.toLowerCase()) return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 function saveRezept() {
   const titel = document.getElementById('rzTitel').value.trim();
-  const tag = document.getElementById('rzTag').value.trim();
   const koch = document.getElementById('rzKoch').value.trim();
   const anpassung = document.getElementById('rzAnpassung').value.trim();
   const quelle = document.getElementById('rzQuelle').value.trim();
   const rid = 'dyn_r_' + (dynamicItemCounter++);
 
-  // Karte bauen
-  const freshZutaten = zutaten.filter(z => z.isFresh);
   const allZutaten = zutaten;
   let zutatenHtml = '<div class="recipe-ingredients">';
   allZutaten.forEach(z => {
@@ -800,19 +818,16 @@ function saveRezept() {
   });
   zutatenHtml += '</div>';
 
-  let einplanenHtml = '';
-  if (freshZutaten.length > 0) {
-    einplanenHtml = `<button class="btn-einplanen" id="btn_einplanen_${rid}" onclick="rezeptEinplanenDyn('${rid}', this)">
-      🛒 Jetzt einplanen – frische Zutaten zur Liste hinzufügen
-    </button>
-    <div class="einplanen-hinweis">⚠️ Nur drücken wenn das Gericht in den nächsten 48h gekocht wird</div>`;
-  }
+  // "Jetzt einplanen" immer anzeigen
+  const einplanenHtml = `<button class="btn-einplanen" id="btn_einplanen_${rid}" onclick="rezeptEinplanenDyn('${rid}', this)">
+    🛒 Jetzt einplanen – Zutaten zur Einkaufsliste hinzufügen
+  </button>
+  <div class="einplanen-hinweis">⚠️ Nur drücken wenn das Gericht in den nächsten 48h gekocht wird</div>`;
 
   const card = document.createElement('div');
   card.className = 'info-card';
   card.id = 'rezept_' + rid;
   card.innerHTML = `
-    <h3>${tag || 'Abend'}</h3>
     <div class="recipe-card">
       <div class="recipe-title">🍽️ ${titel}</div>
       <div class="recipe-meta">${koch ? 'Koch: <span class="recipe-cook">' + koch + '</span>' : ''}${quelle ? '  ·  Quelle: ' + quelle : ''}</div>
@@ -823,38 +838,36 @@ function saveRezept() {
 
   document.getElementById('rezepte-extra').appendChild(card);
 
-  // Frische Zutaten als versteckte Items im Einkauf anlegen
-  if (freshZutaten.length > 0) {
-    let section = document.getElementById('section-rezept-fresh-dyn');
-    if (!section) {
-      section = document.createElement('div');
-      section.className = 'section';
-      section.id = 'section-rezept-fresh-dyn';
-      section.innerHTML = `<div class="section-header hdr-orange">🌅 Frisches ⚠️ – Rezept-Zutaten<span class="badge">0/0</span></div>`;
-      const panel = document.getElementById('tab-einkauf');
-      panel.insertBefore(section, panel.querySelector('.reset-btn'));
-    }
-    freshZutaten.forEach((z, i) => {
-      const fid = rid + '_f' + i;
-      const fitem = document.createElement('div');
-      fitem.className = `item rezept-fresh-${rid}`;
-      fitem.id = 'item_' + fid;
-      fitem.style.display = 'none';
-      fitem.style.background = '#fff8e1';
-      fitem.innerHTML = `
-        <div class="checkbox" onclick="toggleItem('${fid}')"></div>
-        <div class="item-info" onclick="toggleItem('${fid}')">
-          <div class="item-name">${z.name}${z.menge ? ' – ' + z.menge : ''}</div>
-          <div class="item-meta"><span class="fuer-rezept">🍽️ für: ${titel}</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware</span></div>
-        </div>
-        <button class="delete-btn" onclick="deleteItem('${fid}', event)" title="Entfernen">🗑</button>`;
-      section.appendChild(fitem);
-    });
+  // Alle Zutaten als versteckte Items anlegen (frische + haltbare)
+  let section = document.getElementById('section-rezept-fresh-dyn');
+  if (!section) {
+    section = document.createElement('div');
+    section.className = 'section';
+    section.id = 'section-rezept-fresh-dyn';
+    section.innerHTML = `<div class="section-header hdr-orange">🌅 Frisches ⚠️ – Rezept-Zutaten<span class="badge">0/0</span></div>`;
+    const panel = document.getElementById('tab-einkauf');
+    panel.insertBefore(section, panel.querySelector('.reset-btn'));
   }
 
-  // State speichern
+  allZutaten.forEach((z, i) => {
+    const fid = rid + '_f' + i;
+    const fitem = document.createElement('div');
+    fitem.className = `item rezept-fresh-${rid}`;
+    fitem.id = 'item_' + fid;
+    fitem.style.display = 'none';
+    fitem.style.background = z.isFresh ? '#fff8e1' : '#f8f8ff';
+    fitem.innerHTML = `
+      <div class="checkbox" onclick="toggleItem('${fid}')"></div>
+      <div class="item-info" onclick="toggleItem('${fid}')">
+        <div class="item-name">${z.name}${z.menge ? ' – ' + z.menge : ''}</div>
+        <div class="item-meta"><span class="fuer-rezept">🍽️ für: ${titel}</span>${z.isFresh ? ' · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware</span>' : ''}</div>
+      </div>
+      <button class="delete-btn" onclick="deleteItem('${fid}', event)" title="Entfernen">🗑</button>`;
+    section.appendChild(fitem);
+  });
+
   const state = getState();
-  state['dyn_rezept_' + rid] = { titel, tag, koch, anpassung, quelle, zutaten: allZutaten };
+  state['dyn_rezept_' + rid] = { titel, koch, anpassung, quelle, zutaten: allZutaten };
   setState(state);
 
   closeModal('modalRezept');
@@ -867,8 +880,24 @@ function rezeptEinplanenDyn(rid, btn) {
   state['rezept_eingeplant_' + rid] = true;
   setState(state);
   btn.classList.add('eingeplant');
-  btn.textContent = '✓ Eingeplant – frische Zutaten auf der Liste';
-  document.querySelectorAll('.rezept-fresh-' + rid).forEach(item => { item.style.display = 'flex'; });
+  btn.textContent = '✓ Eingeplant – Zutaten auf der Liste';
+
+  const existingNames = getExistingItemNames();
+  let skipped = 0;
+  document.querySelectorAll('.rezept-fresh-' + rid).forEach(item => {
+    const nameEl = item.querySelector('.item-name');
+    const name = nameEl ? nameEl.textContent.split('–')[0].trim().toLowerCase() : '';
+    // Nicht zeigen wenn bereits auf Liste oder bereits anderem Rezept zugewiesen
+    if (existingNames.has(name) || isZutatAlreadyAssigned(name)) {
+      skipped++;
+      return;
+    }
+    item.style.display = 'flex';
+  });
+  if (skipped > 0) {
+    const hint = btn.nextElementSibling;
+    if (hint) hint.textContent = `⚠️ ${skipped} Zutat(en) bereits auf der Liste oder einem anderen Rezept zugewiesen – nicht doppelt hinzugefügt.`;
+  }
   updateProgress();
 }
 
