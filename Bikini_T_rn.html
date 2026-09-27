@@ -345,17 +345,24 @@
 </div></div><div class="section" id="section-Frisches"><div class="section-header hdr-orange">🌅 Frisches ⚠️ – nur die nächsten 2 Tage<span class="badge">0/11</span><button class="add-btn-sec" onclick="openAddArtikel('Frisches', '🌅 Frisches ⚠️ – nur die nächsten 2 Tage')" title="Hinzufügen">＋</button></div><div class="item rezept-fresh-r0" id="item_e_50" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_50')"></div>
   <div class="item-info" onclick="toggleItem('e_50')">
+    <div class="item-name">Obst 300 g</div>
+    <div class="item-meta"><span class="fuer-rezept">🍽️ für: French Toast mit Obst</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
+  </div>
+  <button class="delete-btn" onclick="deleteItem('e_50', event)" title="Entfernen">🗑</button>
+</div><div class="item rezept-fresh-r1" id="item_e_51" style="display:none; background:#fff8e1;">
+  <div class="checkbox" onclick="toggleItem('e_51')"></div>
+  <div class="item-info" onclick="toggleItem('e_51')">
     <div class="item-name">Hähnchen 400 g</div>
     <div class="item-meta"><span class="fuer-rezept">🍽️ für: Hähnchen-Kokos-Curry (One-Pot)</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
   </div>
-  <button class="delete-btn" onclick="deleteItem('e_50', event)" title="Entfernen">🗑</button>
-</div><div class="item rezept-fresh-r0" id="item_e_51" style="display:none; background:#fff8e1;">
-  <div class="checkbox" onclick="toggleItem('e_51')"></div>
-  <div class="item-info" onclick="toggleItem('e_51')">
+  <button class="delete-btn" onclick="deleteItem('e_51', event)" title="Entfernen">🗑</button>
+</div><div class="item rezept-fresh-r1" id="item_e_52" style="display:none; background:#fff8e1;">
+  <div class="checkbox" onclick="toggleItem('e_52')"></div>
+  <div class="item-info" onclick="toggleItem('e_52')">
     <div class="item-name">Gemüse (Paprika, Zucchini, Karotten) 500 g</div>
     <div class="item-meta"><span class="fuer-rezept">🍽️ für: Hähnchen-Kokos-Curry (One-Pot)</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
   </div>
-  <button class="delete-btn" onclick="deleteItem('e_51', event)" title="Entfernen">🗑</button>
+  <button class="delete-btn" onclick="deleteItem('e_52', event)" title="Entfernen">🗑</button>
 </div><div class="item" id="item_e_12">
   <div class="checkbox" onclick="toggleItem('e_12')"></div>
   <div class="item-info" onclick="toggleItem('e_12')"><div class="item-name">Tomaten</div><div class='item-meta'>1,5 kg</div></div>
@@ -515,12 +522,12 @@
 <!-- TAB: REZEPTE -->
 <div class="panel" id="tab-rezepte">
 <button class="add-rezept-btn" onclick="openRezeptWizard()">+ Neues Rezept hinzufügen</button>
-<div class="info-card" id="rezept_r0" data-rezept='{"titel": "Hähnchen-Kokos-Curry (One-Pot)", "koch": "Florian", "anpassung": "Vegetarisch für Maren: Hähnchen weglassen, mehr Kichererbsen", "quelle": "Smutje Kochbuch #70"}'>
+<div class="info-card" id="rezept_r0" data-rezept='{"titel": "French Toast mit Obst", "koch": "Maren", "anpassung": "", "quelle": "Smutje Kochbuch #5"}'>
   <div class="recipe-card">
-    <div class="recipe-title">🍽️ Hähnchen-Kokos-Curry (One-Pot)</div>
-    <div class="recipe-meta">Koch: <span class="recipe-cook">Florian</span>  ·  Quelle: Smutje Kochbuch #70</div>
-    <div class="item-meta" style="margin-top:4px;color:#e85d04;">⚠️ Vegetarisch für Maren: Hähnchen weglassen, mehr Kichererbsen</div>
-    <div class='recipe-ingredients'><div class="fresh">🥬 Hähnchen 400 g 🥬</div><div>🛒 Kichererbsen 2 Dosen</div><div>🛒 Kokosmilch 1 Dose</div><div class="fresh">🥬 Gemüse (Paprika, Zucchini, Karotten) 500 g 🥬</div><div>🛒 Reis 120 g</div><div>🛒 Curry, Salz, Pfeffer</div></div>
+    <div class="recipe-title">🍽️ French Toast mit Obst</div>
+    <div class="recipe-meta">Koch: <span class="recipe-cook">Maren</span>  ·  Quelle: Smutje Kochbuch #5</div>
+    
+    <div class='recipe-ingredients'><div>🛒 Toast 4 Scheiben</div><div>🛒 Eier 2</div><div>🛒 Milch 150 ml</div><div>🛒 Butter 20 g</div><div class="fresh">🥬 Obst 300 g 🥬</div></div>
     <button class="btn-einplanen" id="btn_einplanen_r0" onclick="rezeptEinplanen('r0', this)">
   🛒 Jetzt einplanen – Zutaten zur Einkaufsliste hinzufügen
 </button>
@@ -528,6 +535,21 @@
     <div class="recipe-actions">
       <button class="btn-edit-rezept" onclick="openStaticRezeptEdit('r0')">✏️ Bearbeiten</button>
       <button class="btn-delete-rezept" onclick="deleteStaticRezept('r0')">🗑 Löschen</button>
+    </div>
+  </div>
+</div><div class="info-card" id="rezept_r1" data-rezept='{"titel": "Hähnchen-Kokos-Curry (One-Pot)", "koch": "Florian", "anpassung": "Vegetarisch für Maren: Hähnchen weglassen, mehr Kichererbsen", "quelle": "Smutje Kochbuch #70"}'>
+  <div class="recipe-card">
+    <div class="recipe-title">🍽️ Hähnchen-Kokos-Curry (One-Pot)</div>
+    <div class="recipe-meta">Koch: <span class="recipe-cook">Florian</span>  ·  Quelle: Smutje Kochbuch #70</div>
+    <div class="item-meta" style="margin-top:4px;color:#e85d04;">⚠️ Vegetarisch für Maren: Hähnchen weglassen, mehr Kichererbsen</div>
+    <div class='recipe-ingredients'><div class="fresh">🥬 Hähnchen 400 g 🥬</div><div>🛒 Kichererbsen 2 Dosen</div><div>🛒 Kokosmilch 1 Dose</div><div class="fresh">🥬 Gemüse (Paprika, Zucchini, Karotten) 500 g 🥬</div><div>🛒 Reis 120 g</div><div>🛒 Curry, Salz, Pfeffer</div></div>
+    <button class="btn-einplanen" id="btn_einplanen_r1" onclick="rezeptEinplanen('r1', this)">
+  🛒 Jetzt einplanen – Zutaten zur Einkaufsliste hinzufügen
+</button>
+<div class="einplanen-hinweis">⚠️ Nur drücken wenn das Gericht in den nächsten 48h gekocht wird</div>
+    <div class="recipe-actions">
+      <button class="btn-edit-rezept" onclick="openStaticRezeptEdit('r1')">✏️ Bearbeiten</button>
+      <button class="btn-delete-rezept" onclick="deleteStaticRezept('r1')">🗑 Löschen</button>
     </div>
   </div>
 </div>
