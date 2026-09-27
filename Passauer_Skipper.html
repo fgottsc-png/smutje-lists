@@ -9,6 +9,14 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Open Sans', sans-serif; background: #f2c60d; color: #1a1a2e; min-height: 100vh; }
 
+  /* SPLASH */
+  #splash { position: fixed; inset: 0; background: #f2c60d; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; padding: 32px 24px; text-align: center; }
+  #splash img.splash-logo { width: 160px; height: 160px; object-fit: contain; margin-bottom: 28px; }
+  #splash .splash-presented { font-size: 0.95em; color: #1a3a5c; opacity: 0.75; margin-bottom: 6px; }
+  #splash .splash-sponsor { font-family: 'Lobster', cursive; font-size: 1.6em; color: #1a3a5c; line-height: 1.3; margin-bottom: 32px; }
+  #splash .splash-sponsor a { color: #1a3a5c; text-decoration: underline; text-decoration-color: rgba(26,58,92,0.4); }
+  #splash .splash-btn { background: #1a3a5c; color: #f2c60d; font-family: 'Open Sans', sans-serif; font-weight: 700; font-size: 1em; border: none; border-radius: 12px; padding: 14px 36px; cursor: pointer; letter-spacing: 0.05em; box-shadow: 0 4px 12px rgba(26,58,92,0.25); }
+
   /* HEADER */
   header { background: #f2c60d; padding: 20px 16px 12px; text-align: center; border-bottom: 3px solid #1a3a5c; }
   header img.logo { width: 100px; height: 100px; object-fit: contain; margin-bottom: 6px; }
@@ -37,6 +45,7 @@
   .hdr-teal   { background: #0077b6; }
   .hdr-red    { background: #9d0208; }
   .badge { background: rgba(255,255,255,0.25); border-radius: 20px; padding: 2px 10px; font-size: 0.8em; font-weight: 600; }
+  .add-btn-sec { background: rgba(255,255,255,0.25); border: none; color: white; font-size: 1.1em; font-weight: 700; border-radius: 6px; padding: 0 8px; cursor: pointer; line-height: 1.6; margin-left: 6px; }
 
   /* ITEMS */
   .item { display: flex; align-items: flex-start; padding: 12px 16px; border-bottom: 1px solid #f0f4f8; gap: 12px; transition: background 0.15s; position: relative; }
@@ -64,7 +73,7 @@
 
   /* INFO CARDS */
   .info-card { background: white; border-radius: 12px; margin-bottom: 12px; padding: 14px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-  .info-card h3 { font-family: 'Lobster', cursive; font-size: 1.1em; color: #1a3a5c; margin-bottom: 10px; letter-spacing: 0.02em; }
+  .info-card h3 { font-family: 'Lobster', cursive; font-size: 1.1em; color: #1a3a5c; margin-bottom: 10px; }
   .crew-member { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f4f8; }
   .crew-member:last-child { border-bottom: none; }
   .crew-avatar { width: 36px; height: 36px; border-radius: 50%; background: #1a3a5c; color: #f2c60d; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9em; flex-shrink: 0; }
@@ -79,31 +88,55 @@
   .recipe-cook { color: #1a3a5c; font-weight: 700; }
   .recipe-ingredients { font-size: 0.82em; color: #555; margin-top: 6px; line-height: 1.6; }
   .recipe-ingredients .fresh { color: #e85d04; font-weight: 700; }
-
-  /* JETZT EINPLANEN BUTTON */
-  .btn-einplanen { display: inline-block; margin-top: 10px; background: #1a3a5c; color: #f2c60d; border: none; border-radius: 8px; padding: 8px 16px; font-size: 0.82em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; transition: background 0.2s; }
-  .btn-einplanen:hover { background: #0f2540; }
+  .btn-einplanen { display: inline-block; margin-top: 10px; background: #1a3a5c; color: #f2c60d; border: none; border-radius: 8px; padding: 8px 16px; font-size: 0.82em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; }
   .btn-einplanen.eingeplant { background: #2d6a4f; color: white; cursor: default; }
   .einplanen-hinweis { font-size: 0.75em; color: #e85d04; margin-top: 6px; font-style: italic; }
 
-  /* WARNING BADGE */
-  .frisch-badge { display: inline-block; background: #fff3cd; color: #856404; border-radius: 4px; padding: 1px 7px; font-size: 0.72em; font-weight: 700; margin-left: 6px; }
+  /* ADD REZEPT BUTTON (Rezepte-Tab) */
+  .add-rezept-btn { display: flex; align-items: center; gap: 8px; background: #1a3a5c; color: #f2c60d; border: none; border-radius: 10px; padding: 12px 18px; font-size: 0.9em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; margin: 0 0 12px; width: 100%; justify-content: center; }
+
+  /* ADD MITBRINGEN BUTTON */
+  .add-mitbringen-btn { display: flex; align-items: center; gap: 8px; background: #1a3a5c; color: #f2c60d; border: none; border-radius: 10px; padding: 12px 18px; font-size: 0.9em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; margin: 0 0 12px; width: 100%; justify-content: center; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 20px 20px 0 0; padding: 24px 20px 32px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { font-family: 'Lobster', cursive; color: #1a3a5c; font-size: 1.3em; margin-bottom: 16px; }
+  .modal label { display: block; font-size: 0.82em; font-weight: 700; color: #1a3a5c; margin-bottom: 4px; margin-top: 12px; }
+  .modal input, .modal select, .modal textarea { width: 100%; border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px 12px; font-size: 0.9em; font-family: 'Open Sans', sans-serif; outline: none; transition: border-color 0.2s; }
+  .modal input:focus, .modal select:focus, .modal textarea:focus { border-color: #1a3a5c; }
+  .modal textarea { min-height: 80px; resize: vertical; }
+  .modal-hint { font-size: 0.75em; color: #888; margin-top: 3px; font-style: italic; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-btn-primary { flex: 1; background: #1a3a5c; color: #f2c60d; border: none; border-radius: 10px; padding: 13px; font-size: 0.95em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; }
+  .modal-btn-cancel { background: #f0f0f0; color: #555; border: none; border-radius: 10px; padding: 13px 20px; font-size: 0.95em; font-weight: 600; cursor: pointer; font-family: 'Open Sans', sans-serif; }
+
+  /* WIZARD STEPS */
+  .wizard-step { display: none; }
+  .wizard-step.active { display: block; }
+  .wizard-progress { display: flex; gap: 6px; margin-bottom: 16px; }
+  .wizard-dot { flex: 1; height: 4px; background: #e0e0e0; border-radius: 2px; }
+  .wizard-dot.done { background: #1a3a5c; }
+
+  /* ZUTATEN LISTE IM WIZARD */
+  .zutat-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .zutat-row input { flex: 1; }
+  .zutat-row input.menge { width: 90px; flex: none; }
+  .zutat-row .fresh-toggle { background: none; border: 2px solid #e0e0e0; border-radius: 6px; padding: 6px 8px; font-size: 0.8em; cursor: pointer; white-space: nowrap; }
+  .zutat-row .fresh-toggle.active { border-color: #e85d04; color: #e85d04; background: #fff3e0; }
+  .zutat-row .rm-zutat { background: none; border: none; color: #ccc; font-size: 1.2em; cursor: pointer; padding: 0 4px; }
+  .zutat-row .rm-zutat:hover { color: #dc2626; }
+  .add-zutat-btn { background: none; border: 2px dashed #ccc; border-radius: 8px; color: #888; font-size: 0.85em; padding: 8px; width: 100%; cursor: pointer; margin-top: 4px; font-family: 'Open Sans', sans-serif; }
+  .add-zutat-btn:hover { border-color: #1a3a5c; color: #1a3a5c; }
 
   footer { text-align: center; padding: 20px 16px; font-size: 0.75em; color: #1a3a5c; opacity: 0.6; }
   .reset-btn { display: block; margin: 0 auto 16px; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; padding: 8px 20px; font-size: 0.85em; cursor: pointer; font-family: 'Open Sans', sans-serif; font-weight: 600; }
-  /* SPLASH SCREEN */
-  #splash { position: fixed; inset: 0; background: #f2c60d; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; padding: 32px 24px; text-align: center; }
-  #splash img.splash-logo { width: 160px; height: 160px; object-fit: contain; margin-bottom: 28px; }
-  #splash .splash-presented { font-size: 0.95em; color: #1a3a5c; opacity: 0.75; margin-bottom: 6px; font-family: 'Open Sans', sans-serif; }
-  #splash .splash-sponsor { font-family: 'Lobster', cursive; font-size: 1.6em; color: #1a3a5c; line-height: 1.3; margin-bottom: 32px; }
-  #splash .splash-sponsor a { color: #1a3a5c; text-decoration: underline; text-decoration-color: rgba(26,58,92,0.4); }
-  #splash .splash-btn { background: #1a3a5c; color: #f2c60d; font-family: 'Open Sans', sans-serif; font-weight: 700; font-size: 1em; border: none; border-radius: 12px; padding: 14px 36px; cursor: pointer; letter-spacing: 0.05em; box-shadow: 0 4px 12px rgba(26,58,92,0.25); transition: background 0.2s; }
-  #splash .splash-btn:hover { background: #0f2540; }
 </style>
 </head>
 <body>
 
-<!-- SPLASH SCREEN -->
+<!-- SPLASH -->
 <div id="splash">
   <img class="splash-logo" src="https://fgottsc-png.github.io/smutje-lists/dersmutje.png" alt="Smutje Logo">
   <div class="splash-presented">Smutje wird präsentiert von</div>
@@ -111,6 +144,96 @@
     <a href="https://www.marinepool.com" target="_blank" rel="noopener">MARINEPOOL<br>Fashion für Segler</a>
   </div>
   <button class="splash-btn" onclick="document.getElementById('splash').style.display='none'">ZUR EINKAUFSLISTE</button>
+</div>
+
+<!-- MODAL: Artikel hinzufügen -->
+<div class="modal-overlay" id="modalArtikel">
+  <div class="modal">
+    <h2 id="modalArtikelTitle">Artikel hinzufügen</h2>
+    <label>Artikel / Name *</label>
+    <input type="text" id="newArtikelName" placeholder="z.B. Pasta, Bier, Sonnencreme…">
+    <label>Menge</label>
+    <input type="text" id="newArtikelMenge" placeholder="z.B. 500 g, 2 Flaschen, 1 Packung">
+    <label>Kategorie</label>
+    <input type="hidden" id="newArtikelKategorie">
+    <input type="text" id="newArtikelKategorieDisplay" disabled style="background:#f5f5f5; color:#888;">
+    <label>Mitgebracht von (optional)</label>
+    <input type="text" id="newArtikelMitbringer" placeholder="z.B. Florian">
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modalArtikel')">Abbrechen</button>
+      <button class="modal-btn-primary" onclick="saveArtikel()">Hinzufügen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Mitbringen hinzufügen -->
+<div class="modal-overlay" id="modalMitbringen">
+  <div class="modal">
+    <h2>Mitbringen hinzufügen</h2>
+    <label>Was wird mitgebracht? *</label>
+    <input type="text" id="newMitbringenName" placeholder="z.B. Rum, Gewürze, Töpfe…">
+    <label>Menge</label>
+    <input type="text" id="newMitbringenMenge" placeholder="z.B. 1 Flasche, 500 g">
+    <label>Von wem? *</label>
+    <input type="text" id="newMitbringenPerson" placeholder="z.B. Florian">
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modalMitbringen')">Abbrechen</button>
+      <button class="modal-btn-primary" onclick="saveMitbringen()">Hinzufügen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Rezept hinzufügen (Wizard) -->
+<div class="modal-overlay" id="modalRezept">
+  <div class="modal">
+    <h2>🍽️ Rezept hinzufügen</h2>
+    <div class="wizard-progress">
+      <div class="wizard-dot done" id="wdot1"></div>
+      <div class="wizard-dot" id="wdot2"></div>
+      <div class="wizard-dot" id="wdot3"></div>
+    </div>
+
+    <!-- SCHRITT 1: Basisinfos -->
+    <div class="wizard-step active" id="wstep1">
+      <label>Gerichtname *</label>
+      <input type="text" id="rzTitel" placeholder="z.B. Pasta Napoli, Fischcurry…">
+      <label>Für welchen Abend?</label>
+      <input type="text" id="rzTag" placeholder="z.B. Dienstag, Abend 3, nach Wahl…">
+      <label>Koch / Köchin</label>
+      <input type="text" id="rzKoch" placeholder="Wer kocht das Gericht?">
+      <label>Für wie viele Personen ist das Rezept ursprünglich?</label>
+      <input type="number" id="rzPersonen" value="6" min="1" max="20">
+      <p class="modal-hint">Die Zutaten werden automatisch auf 6 Personen umgerechnet.</p>
+      <div class="modal-actions">
+        <button class="modal-btn-cancel" onclick="closeModal('modalRezept')">Abbrechen</button>
+        <button class="modal-btn-primary" onclick="wizardNext(1)">Weiter →</button>
+      </div>
+    </div>
+
+    <!-- SCHRITT 2: Zutaten -->
+    <div class="wizard-step" id="wstep2">
+      <p style="font-size:0.85em; color:#555; margin-bottom:12px;">Füge alle Zutaten hinzu. Markiere frische Zutaten (Fleisch, Fisch, Gemüse, Milchprodukte) mit 🥬 – diese erscheinen erst auf der Einkaufsliste wenn du „Jetzt einplanen" drückst.</p>
+      <div id="zutatenListe"></div>
+      <button class="add-zutat-btn" onclick="addZutatRow()">+ Zutat hinzufügen</button>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="modal-btn-cancel" onclick="wizardBack(2)">← Zurück</button>
+        <button class="modal-btn-primary" onclick="wizardNext(2)">Weiter →</button>
+      </div>
+    </div>
+
+    <!-- SCHRITT 3: Anpassungen & Abschluss -->
+    <div class="wizard-step" id="wstep3">
+      <label>Vegetarische/vegane Anpassung (optional)</label>
+      <input type="text" id="rzAnpassung" placeholder="z.B. Fleisch durch Tofu ersetzen">
+      <label>Quelle / Kochbuch (optional)</label>
+      <input type="text" id="rzQuelle" placeholder="z.B. Smutje Kochbuch #67, Oma's Rezept…">
+      <div id="rzVorschau" style="margin-top:14px; background:#f8f8f8; border-radius:8px; padding:12px; font-size:0.82em; color:#555;"></div>
+      <div class="modal-actions">
+        <button class="modal-btn-cancel" onclick="wizardBack(3)">← Zurück</button>
+        <button class="modal-btn-primary" onclick="saveRezept()">Rezept speichern</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <header>
@@ -130,7 +253,7 @@
 
 <!-- TAB: EINKAUFSLISTE -->
 <div class="panel active" id="tab-einkauf">
-<div class="section"><div class="section-header hdr-blue">⚓ Basics<span class="badge">0/10</span></div><div class="item" id="item_e_1">
+<div class="section" id="section-Basics"><div class="section-header hdr-blue">⚓ Basics<span class="badge">0/10</span><button class="add-btn-sec" onclick="openAddArtikel('Basics', '⚓ Basics')" title="Hinzufügen">＋</button></div><div class="item" id="item_e_1">
   <div class="checkbox" onclick="toggleItem('e_1')"></div>
   <div class="item-info" onclick="toggleItem('e_1')"><div class="item-name">Spülmittel</div><div class='item-meta'>2 Flaschen</div></div>
   <button class="delete-btn" onclick="deleteItem('e_1', event)" title="Entfernen">🗑</button>
@@ -170,7 +293,7 @@
   <div class="checkbox" onclick="toggleItem('e_10')"></div>
   <div class="item-info" onclick="toggleItem('e_10')"><div class="item-name">Gewürze (Paprika, Curry, Oregano, Chili, Kreuzkümmel)</div><div class='item-meta'>je 1 Tüte</div></div>
   <button class="delete-btn" onclick="deleteItem('e_10', event)" title="Entfernen">🗑</button>
-</div></div><div class="section"><div class="section-header hdr-orange">🌅 Frisches ⚠️ – nur erste 3 Tage<span class="badge">0/7</span></div><div class="item rezept-fresh-r0" id="item_e_44" style="display:none; background:#fff8e1;">
+</div></div><div class="section" id="section-Frisches"><div class="section-header hdr-orange">🌅 Frisches ⚠️ – nur erste 3 Tage<span class="badge">0/7</span><button class="add-btn-sec" onclick="openAddArtikel('Frisches', '🌅 Frisches ⚠️ – nur erste 3 Tage')" title="Hinzufügen">＋</button></div><div class="item rezept-fresh-r0" id="item_e_44" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_44')"></div>
   <div class="item-info" onclick="toggleItem('e_44')">
     <div class="item-name">Hühnchenbrust 1,2 kg</div>
@@ -219,7 +342,7 @@
   <div class="checkbox" onclick="toggleItem('e_17')"></div>
   <div class="item-info" onclick="toggleItem('e_17')"><div class="item-name">Feta (laktosefrei für 1 Person)</div><div class='item-meta'>400 g</div></div>
   <button class="delete-btn" onclick="deleteItem('e_17', event)" title="Entfernen">🗑</button>
-</div></div><div class="section"><div class="section-header hdr-teal">🍳 Frühstück<span class="badge">0/7</span></div><div class="item" id="item_e_18">
+</div></div><div class="section" id="section-Fr_hst_ck"><div class="section-header hdr-teal">🍳 Frühstück<span class="badge">0/7</span><button class="add-btn-sec" onclick="openAddArtikel('Frühstück', '🍳 Frühstück')" title="Hinzufügen">＋</button></div><div class="item" id="item_e_18">
   <div class="checkbox" onclick="toggleItem('e_18')"></div>
   <div class="item-info" onclick="toggleItem('e_18')"><div class="item-name">Brot / Brötchen</div><div class='item-meta'>für 3 Tage</div></div>
   <button class="delete-btn" onclick="deleteItem('e_18', event)" title="Entfernen">🗑</button>
@@ -247,7 +370,7 @@
   <div class="checkbox" onclick="toggleItem('e_24')"></div>
   <div class="item-info" onclick="toggleItem('e_24')"><div class="item-name">Marmelade</div><div class='item-meta'>2 Gläser</div></div>
   <button class="delete-btn" onclick="deleteItem('e_24', event)" title="Entfernen">🗑</button>
-</div></div><div class="section"><div class="section-header hdr-green">🥪 Lunch / Snacks<span class="badge">0/6</span></div><div class="item" id="item_e_25">
+</div></div><div class="section" id="section-Lunch"><div class="section-header hdr-green">🥪 Lunch / Snacks<span class="badge">0/6</span><button class="add-btn-sec" onclick="openAddArtikel('Lunch', '🥪 Lunch / Snacks')" title="Hinzufügen">＋</button></div><div class="item" id="item_e_25">
   <div class="checkbox" onclick="toggleItem('e_25')"></div>
   <div class="item-info" onclick="toggleItem('e_25')"><div class="item-name">Sandwichbrot / Toastbrot</div><div class='item-meta'>3 Packungen</div></div>
   <button class="delete-btn" onclick="deleteItem('e_25', event)" title="Entfernen">🗑</button>
@@ -271,7 +394,7 @@
   <div class="checkbox" onclick="toggleItem('e_30')"></div>
   <div class="item-info" onclick="toggleItem('e_30')"><div class="item-name">Riegel / Snacks</div><div class='item-meta'>12 Stück</div></div>
   <button class="delete-btn" onclick="deleteItem('e_30', event)" title="Entfernen">🗑</button>
-</div></div><div class="section"><div class="section-header hdr-purple">🍽️ Abendessen<span class="badge">0/8</span></div><div class="item" id="item_e_31">
+</div></div><div class="section" id="section-Abendessen"><div class="section-header hdr-purple">🍽️ Abendessen<span class="badge">0/8</span><button class="add-btn-sec" onclick="openAddArtikel('Abendessen', '🍽️ Abendessen')" title="Hinzufügen">＋</button></div><div class="item" id="item_e_31">
   <div class="checkbox" onclick="toggleItem('e_31')"></div>
   <div class="item-info" onclick="toggleItem('e_31')"><div class="item-name">Spaghetti</div><div class='item-meta'>1,5 kg</div></div>
   <button class="delete-btn" onclick="deleteItem('e_31', event)" title="Entfernen">🗑</button>
@@ -303,7 +426,7 @@
   <div class="checkbox" onclick="toggleItem('e_38')"></div>
   <div class="item-info" onclick="toggleItem('e_38')"><div class="item-name">Parmesan (laktosefrei für 1)</div><div class='item-meta'>200 g</div></div>
   <button class="delete-btn" onclick="deleteItem('e_38', event)" title="Entfernen">🗑</button>
-</div></div><div class="section"><div class="section-header hdr-red">🍺 Getränke<span class="badge">0/5</span></div><div class="item" id="item_e_39">
+</div></div><div class="section" id="section-Getr_nke"><div class="section-header hdr-red">🍺 Getränke<span class="badge">0/5</span><button class="add-btn-sec" onclick="openAddArtikel('Getränke', '🍺 Getränke')" title="Hinzufügen">＋</button></div><div class="item" id="item_e_39">
   <div class="checkbox" onclick="toggleItem('e_39')"></div>
   <div class="item-info" onclick="toggleItem('e_39')"><div class="item-name">Bier</div><div class='item-meta'>1 Palette</div></div>
   <button class="delete-btn" onclick="deleteItem('e_39', event)" title="Entfernen">🗑</button>
@@ -334,10 +457,13 @@
   <div class="item-info" onclick="toggleItem('m_0')"><div class="item-name">Rum</div><div class="item-meta">3 Flaschen · <span class="mitbringer">🧳 Florian</span></div></div>
   <button class="delete-btn" onclick="deleteItem('m_0', event)" title="Entfernen">🗑</button>
 </div></div>
+<button class="add-mitbringen-btn" onclick="openModal('modalMitbringen')">+ Mitbringen hinzufügen</button>
+<div id="mitbringen-extra"></div>
 </div>
 
 <!-- TAB: REZEPTE -->
 <div class="panel" id="tab-rezepte">
+<button class="add-rezept-btn" onclick="openRezeptWizard()">+ Neues Rezept hinzufügen</button>
 <div class="info-card">
   <h3>Abend (nach Wahl)</h3>
   <div class="recipe-card">
@@ -351,9 +477,10 @@
 <div class="einplanen-hinweis">⚠️ Nur drücken wenn das Gericht in den nächsten 48h gekocht wird</div>
   </div>
 </div>
+<div id="rezepte-extra"></div>
 </div>
 
-<!-- TAB: CREW & PRÄFERENZEN -->
+<!-- TAB: CREW -->
 <div class="panel" id="tab-crew">
 <div class="info-card"><h3>Crew & Präferenzen</h3><div class="crew-member">
   <div class="crew-avatar">F</div>
@@ -385,9 +512,11 @@
 <footer>Erstellt von Smutje · seebaertv ⚓ · Stand: 27.09.2026</footer>
 
 <script>
-const LIST_ID = 'ddb5185a';
-const TOTAL_EINKAUF = 46;
-const TOTAL_MITBRINGEN = 1;
+const LIST_ID = '2dcadf39';
+const CREW_ANZAHL = 6;
+let dynamicItemCounter = 10000;
+let currentKategorie = '';
+let currentKategorieLabel = '';
 
 function getState() {
   try { return JSON.parse(localStorage.getItem('smutje_' + LIST_ID) || '{}'); } catch(e) { return {}; }
@@ -396,23 +525,22 @@ function setState(s) { localStorage.setItem('smutje_' + LIST_ID, JSON.stringify(
 
 function updateProgress() {
   const state = getState();
-  const doneE = Object.keys(state).filter(k => k.startsWith('e_') && state[k] === true).length;
-  const doneM = Object.keys(state).filter(k => k.startsWith('m_') && state[k] === true).length;
-  const total = TOTAL_EINKAUF + TOTAL_MITBRINGEN;
-  const done = doneE + doneM;
-  document.getElementById('progressFill').style.width = (total > 0 ? done/total*100 : 0) + '%';
-  document.getElementById('progressLabel').textContent = done + ' von ' + total + ' Punkten erledigt';
+  const allItems = document.querySelectorAll('.item:not(.deleted)');
+  const checked = [...allItems].filter(i => i.classList.contains('checked')).length;
+  const total = allItems.length;
+  document.getElementById('progressFill').style.width = (total > 0 ? checked/total*100 : 0) + '%';
+  document.getElementById('progressLabel').textContent = checked + ' von ' + total + ' Punkten erledigt';
   document.querySelectorAll('.section').forEach(sec => {
-    const items = sec.querySelectorAll('.item');
-    const secDone = [...items].filter(i => i.classList.contains('checked')).length;
+    const items = [...sec.querySelectorAll('.item')].filter(i => !i.classList.contains('deleted'));
+    const done = items.filter(i => i.classList.contains('checked')).length;
     const badge = sec.querySelector('.badge');
-    if (badge) badge.textContent = secDone + '/' + items.length;
+    if (badge) badge.textContent = done + '/' + items.length;
   });
 }
 
 function toggleItem(id) {
   const state = getState();
-  if (state['del_' + id]) return; // already deleted
+  if (state['del_' + id]) return;
   state[id] = !state[id];
   setState(state);
   const el = document.getElementById('item_' + id);
@@ -435,7 +563,7 @@ function deleteItem(id, event) {
 function resetAll() {
   if (confirm('Alle Häkchen zurücksetzen? (Gelöschte Artikel bleiben entfernt)')) {
     const state = getState();
-    Object.keys(state).forEach(k => { if (k.startsWith('e_') || k.startsWith('m_')) delete state[k]; });
+    Object.keys(state).forEach(k => { if (!k.startsWith('del_') && !k.startsWith('rezept_') && !k.startsWith('dyn_')) delete state[k]; });
     setState(state);
     document.querySelectorAll('.item:not(.deleted)').forEach(i => i.classList.remove('checked'));
     updateProgress();
@@ -449,7 +577,301 @@ function showTab(name, el) {
   if (el) el.classList.add('active');
 }
 
-// Rezept einplanen: fügt frische Zutaten zur Einkaufliste hinzu (als eingeplant markiert im State)
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Artikel zu einer Sektion hinzufügen
+function openAddArtikel(kategorie, label) {
+  currentKategorie = kategorie;
+  currentKategorieLabel = label;
+  document.getElementById('newArtikelName').value = '';
+  document.getElementById('newArtikelMenge').value = '';
+  document.getElementById('newArtikelMitbringer').value = '';
+  document.getElementById('newArtikelKategorie').value = kategorie;
+  document.getElementById('newArtikelKategorieDisplay').value = label;
+  document.getElementById('modalArtikelTitle').textContent = '+ zu ' + label + ' hinzufügen';
+  openModal('modalArtikel');
+}
+
+function saveArtikel() {
+  const name = document.getElementById('newArtikelName').value.trim();
+  if (!name) { alert('Bitte einen Namen eingeben.'); return; }
+  const menge = document.getElementById('newArtikelMenge').value.trim();
+  const mitbringer = document.getElementById('newArtikelMitbringer').value.trim();
+  const id = 'dyn_' + (dynamicItemCounter++);
+
+  // Sektion im DOM finden oder neue anlegen
+  const sectionId = 'section-' + currentKategorie.replace(/[^a-zA-Z0-9]/g, '_');
+  let section = document.getElementById(sectionId);
+  if (!section) {
+    // Neue Sektion ans Ende des Einkauf-Tabs anhängen
+    const panel = document.getElementById('tab-einkauf');
+    const resetBtn = panel.querySelector('.reset-btn');
+    const div = document.createElement('div');
+    div.className = 'section';
+    div.id = sectionId;
+    div.innerHTML = `<div class="section-header hdr-blue">${currentKategorieLabel}<span class="badge">0/0</span></div>`;
+    panel.insertBefore(div, resetBtn);
+    section = div;
+  }
+
+  const metaParts = [];
+  if (menge) metaParts.push(menge);
+  if (mitbringer) metaParts.push(`<span class="mitbringer">🧳 ${mitbringer}</span>`);
+  const meta = metaParts.join(' · ');
+
+  const item = document.createElement('div');
+  item.className = 'item';
+  item.id = 'item_' + id;
+  item.innerHTML = `
+    <div class="checkbox" onclick="toggleItem('${id}')"></div>
+    <div class="item-info" onclick="toggleItem('${id}')">
+      <div class="item-name">${name}</div>
+      ${meta ? `<div class="item-meta">${meta}</div>` : ''}
+    </div>
+    <button class="delete-btn" onclick="deleteItem('${id}', event)" title="Entfernen">🗑</button>`;
+  section.appendChild(item);
+
+  // In State speichern
+  const state = getState();
+  state['dyn_' + id] = { name, menge, mitbringer, kategorie: currentKategorie };
+  setState(state);
+
+  closeModal('modalArtikel');
+  updateProgress();
+}
+
+// Mitbringen
+function saveMitbringen() {
+  const name = document.getElementById('newMitbringenName').value.trim();
+  const menge = document.getElementById('newMitbringenMenge').value.trim();
+  const person = document.getElementById('newMitbringenPerson').value.trim();
+  if (!name || !person) { alert('Bitte Name und Person angeben.'); return; }
+  const id = 'dyn_m_' + (dynamicItemCounter++);
+
+  const container = document.getElementById('mitbringen-extra');
+  let section = document.getElementById('section-mitbringen-extra');
+  if (!section) {
+    section = document.createElement('div');
+    section.className = 'section';
+    section.id = 'section-mitbringen-extra';
+    section.innerHTML = `<div class="section-header hdr-blue">🧳 Zusätzlich mitbringen<span class="badge">0/0</span></div>`;
+    container.appendChild(section);
+  }
+
+  const item = document.createElement('div');
+  item.className = 'item';
+  item.id = 'item_' + id;
+  item.innerHTML = `
+    <div class="checkbox" onclick="toggleItem('${id}')"></div>
+    <div class="item-info" onclick="toggleItem('${id}')">
+      <div class="item-name">${name}</div>
+      <div class="item-meta">${menge ? menge + ' · ' : ''}<span class="mitbringer">🧳 ${person}</span></div>
+    </div>
+    <button class="delete-btn" onclick="deleteItem('${id}', event)" title="Entfernen">🗑</button>`;
+  section.appendChild(item);
+
+  const state = getState();
+  state['dyn_' + id] = { name, menge, person, type: 'mitbringen' };
+  setState(state);
+
+  document.getElementById('newMitbringenName').value = '';
+  document.getElementById('newMitbringenMenge').value = '';
+  document.getElementById('newMitbringenPerson').value = '';
+  closeModal('modalMitbringen');
+  updateProgress();
+}
+
+// REZEPT WIZARD
+let zutaten = [];
+let wCurrentStep = 1;
+
+function openRezeptWizard() {
+  wCurrentStep = 1;
+  zutaten = [];
+  document.getElementById('rzTitel').value = '';
+  document.getElementById('rzTag').value = '';
+  document.getElementById('rzKoch').value = '';
+  document.getElementById('rzPersonen').value = CREW_ANZAHL;
+  document.getElementById('rzAnpassung').value = '';
+  document.getElementById('rzQuelle').value = '';
+  document.getElementById('zutatenListe').innerHTML = '';
+  addZutatRow();
+  showWizardStep(1);
+  openModal('modalRezept');
+}
+
+function showWizardStep(n) {
+  wCurrentStep = n;
+  document.querySelectorAll('.wizard-step').forEach((s, i) => {
+    s.classList.toggle('active', i + 1 === n);
+  });
+  document.querySelectorAll('.wizard-dot').forEach((d, i) => {
+    d.classList.toggle('done', i < n);
+  });
+}
+
+function wizardNext(step) {
+  if (step === 1) {
+    if (!document.getElementById('rzTitel').value.trim()) { alert('Bitte einen Gerichenamen eingeben.'); return; }
+    showWizardStep(2);
+  } else if (step === 2) {
+    zutaten = collectZutaten();
+    if (zutaten.length === 0) { alert('Bitte mindestens eine Zutat angeben.'); return; }
+    buildVorschau();
+    showWizardStep(3);
+  }
+}
+
+function wizardBack(step) {
+  showWizardStep(step - 1);
+}
+
+function addZutatRow(name='', menge='', isFresh=false) {
+  const list = document.getElementById('zutatenListe');
+  const row = document.createElement('div');
+  row.className = 'zutat-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Zutat" value="${name}" class="zutat-name">
+    <input type="text" placeholder="Menge" value="${menge}" class="zutat-menge menge">
+    <button class="fresh-toggle${isFresh ? ' active' : ''}" onclick="this.classList.toggle('active')" title="Frischware markieren">🥬</button>
+    <button class="rm-zutat" onclick="this.parentElement.remove()">✕</button>`;
+  list.appendChild(row);
+}
+
+function collectZutaten() {
+  const rows = document.querySelectorAll('#zutatenListe .zutat-row');
+  const origPersonen = parseInt(document.getElementById('rzPersonen').value) || CREW_ANZAHL;
+  const factor = CREW_ANZAHL / origPersonen;
+  const result = [];
+  rows.forEach(row => {
+    const name = row.querySelector('.zutat-name').value.trim();
+    if (!name) return;
+    let menge = row.querySelector('.zutat-menge').value.trim();
+    const isFresh = row.querySelector('.fresh-toggle').classList.contains('active');
+    // Mengen umrechnen wenn Zahl erkennbar
+    if (menge && factor !== 1) {
+      menge = menge.replace(/(\d+[.,]?\d*)/g, (m) => {
+        const val = parseFloat(m.replace(',', '.')) * factor;
+        return Number.isInteger(val) ? val : val.toFixed(1).replace('.', ',');
+      });
+    }
+    result.push({ name, menge, isFresh });
+  });
+  return result;
+}
+
+function buildVorschau() {
+  const titel = document.getElementById('rzTitel').value;
+  const tag = document.getElementById('rzTag').value;
+  const koch = document.getElementById('rzKoch').value;
+  let html = `<strong>${titel}</strong>`;
+  if (tag) html += ` · ${tag}`;
+  if (koch) html += ` · Koch: ${koch}`;
+  html += '<br><br>';
+  zutaten.forEach(z => {
+    html += `${z.isFresh ? '🥬 ' : '🛒 '}${z.name}${z.menge ? ' – ' + z.menge : ''}<br>`;
+  });
+  const origPersonen = parseInt(document.getElementById('rzPersonen').value) || CREW_ANZAHL;
+  if (origPersonen !== CREW_ANZAHL) {
+    html += `<br><em style="color:#888">Originalrezept für ${origPersonen} Pers. → umgerechnet auf ${CREW_ANZAHL} Pers.</em>`;
+  }
+  document.getElementById('rzVorschau').innerHTML = html;
+}
+
+function saveRezept() {
+  const titel = document.getElementById('rzTitel').value.trim();
+  const tag = document.getElementById('rzTag').value.trim();
+  const koch = document.getElementById('rzKoch').value.trim();
+  const anpassung = document.getElementById('rzAnpassung').value.trim();
+  const quelle = document.getElementById('rzQuelle').value.trim();
+  const rid = 'dyn_r_' + (dynamicItemCounter++);
+
+  // Karte bauen
+  const freshZutaten = zutaten.filter(z => z.isFresh);
+  const allZutaten = zutaten;
+  let zutatenHtml = '<div class="recipe-ingredients">';
+  allZutaten.forEach(z => {
+    zutatenHtml += `<div${z.isFresh ? ' class="fresh"' : ''}>${z.isFresh ? '🥬 ' : '🛒 '}${z.name}${z.menge ? ' – ' + z.menge : ''}</div>`;
+  });
+  zutatenHtml += '</div>';
+
+  let einplanenHtml = '';
+  if (freshZutaten.length > 0) {
+    einplanenHtml = `<button class="btn-einplanen" id="btn_einplanen_${rid}" onclick="rezeptEinplanenDyn('${rid}', this)">
+      🛒 Jetzt einplanen – frische Zutaten zur Liste hinzufügen
+    </button>
+    <div class="einplanen-hinweis">⚠️ Nur drücken wenn das Gericht in den nächsten 48h gekocht wird</div>`;
+  }
+
+  const card = document.createElement('div');
+  card.className = 'info-card';
+  card.id = 'rezept_' + rid;
+  card.innerHTML = `
+    <h3>${tag || 'Abend'}</h3>
+    <div class="recipe-card">
+      <div class="recipe-title">🍽️ ${titel}</div>
+      <div class="recipe-meta">${koch ? 'Koch: <span class="recipe-cook">' + koch + '</span>' : ''}${quelle ? '  ·  Quelle: ' + quelle : ''}</div>
+      ${anpassung ? `<div class="item-meta" style="margin-top:4px;color:#e85d04;">⚠️ ${anpassung}</div>` : ''}
+      ${zutatenHtml}
+      ${einplanenHtml}
+    </div>`;
+
+  document.getElementById('rezepte-extra').appendChild(card);
+
+  // Frische Zutaten als versteckte Items im Einkauf anlegen
+  if (freshZutaten.length > 0) {
+    let section = document.getElementById('section-rezept-fresh-dyn');
+    if (!section) {
+      section = document.createElement('div');
+      section.className = 'section';
+      section.id = 'section-rezept-fresh-dyn';
+      section.innerHTML = `<div class="section-header hdr-orange">🌅 Frisches ⚠️ – Rezept-Zutaten<span class="badge">0/0</span></div>`;
+      const panel = document.getElementById('tab-einkauf');
+      panel.insertBefore(section, panel.querySelector('.reset-btn'));
+    }
+    freshZutaten.forEach((z, i) => {
+      const fid = rid + '_f' + i;
+      const fitem = document.createElement('div');
+      fitem.className = `item rezept-fresh-${rid}`;
+      fitem.id = 'item_' + fid;
+      fitem.style.display = 'none';
+      fitem.style.background = '#fff8e1';
+      fitem.innerHTML = `
+        <div class="checkbox" onclick="toggleItem('${fid}')"></div>
+        <div class="item-info" onclick="toggleItem('${fid}')">
+          <div class="item-name">${z.name}${z.menge ? ' – ' + z.menge : ''}</div>
+          <div class="item-meta"><span class="fuer-rezept">🍽️ für: ${titel}</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware</span></div>
+        </div>
+        <button class="delete-btn" onclick="deleteItem('${fid}', event)" title="Entfernen">🗑</button>`;
+      section.appendChild(fitem);
+    });
+  }
+
+  // State speichern
+  const state = getState();
+  state['dyn_rezept_' + rid] = { titel, tag, koch, anpassung, quelle, zutaten: allZutaten };
+  setState(state);
+
+  closeModal('modalRezept');
+  updateProgress();
+}
+
+function rezeptEinplanenDyn(rid, btn) {
+  const state = getState();
+  if (state['rezept_eingeplant_' + rid]) return;
+  state['rezept_eingeplant_' + rid] = true;
+  setState(state);
+  btn.classList.add('eingeplant');
+  btn.textContent = '✓ Eingeplant – frische Zutaten auf der Liste';
+  document.querySelectorAll('.rezept-fresh-' + rid).forEach(item => { item.style.display = 'flex'; });
+  updateProgress();
+}
+
 function rezeptEinplanen(rezeptId, btn) {
   const state = getState();
   if (state['rezept_eingeplant_' + rezeptId]) return;
@@ -457,12 +879,15 @@ function rezeptEinplanen(rezeptId, btn) {
   setState(state);
   btn.classList.add('eingeplant');
   btn.textContent = '✓ Eingeplant – frische Zutaten auf der Liste';
-  // Zeige frische Zutaten im Einkaufs-Tab sichtbar an
-  const freshItems = document.querySelectorAll('.rezept-fresh-' + rezeptId);
-  freshItems.forEach(item => {
-    item.style.display = 'flex';
-  });
+  document.querySelectorAll('.rezept-fresh-' + rezeptId).forEach(item => { item.style.display = 'flex'; });
   updateProgress();
+}
+
+function showTab(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (el) el.classList.add('active');
 }
 
 window.onload = function() {
@@ -481,8 +906,7 @@ window.onload = function() {
       const rid = id.replace('rezept_eingeplant_', '');
       const btn = document.getElementById('btn_einplanen_' + rid);
       if (btn) { btn.classList.add('eingeplant'); btn.textContent = '✓ Eingeplant – frische Zutaten auf der Liste'; }
-      const freshItems = document.querySelectorAll('.rezept-fresh-' + rid);
-      freshItems.forEach(item => { item.style.display = 'flex'; });
+      document.querySelectorAll('.rezept-fresh-' + rid).forEach(item => { item.style.display = 'flex'; });
     }
   });
   updateProgress();
