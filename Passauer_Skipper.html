@@ -596,10 +596,20 @@ function setState(s) {
 }
 
 let _syncTimer = null;
+let _pendingState = null;
 function scheduleSyncToGitHub(state) {
+  _pendingState = state;
   clearTimeout(_syncTimer);
-  _syncTimer = setTimeout(() => syncStateToProxy(state), 1500);
+  _syncTimer = setTimeout(() => { _syncTimer = null; const s = _pendingState; _pendingState = null; syncStateToProxy(s); }, 400);
 }
+function flushSync() {
+  if (_syncTimer) { clearTimeout(_syncTimer); _syncTimer = null; }
+  if (_pendingState) { const s = _pendingState; _pendingState = null; syncStateToProxy(s); }
+}
+// Nie Eingaben verlieren: sofort senden, wenn der Tab versteckt/geschlossen wird
+window.addEventListener('pagehide', flushSync);
+window.addEventListener('beforeunload', flushSync);
+document.addEventListener('visibilitychange', function() { if (document.hidden) flushSync(); });
 
 async function syncStateToProxy(state) {
   try {
@@ -1586,7 +1596,12 @@ window.onload = async function() {
   // State aus GitHub laden (Vorrang über lokalen State)
   const remoteState = await loadStateFromGitHub();
   if (remoteState && Object.keys(remoteState).length > 0) {
-    localStorage.setItem('smutje_' + LIST_ID, JSON.stringify(remoteState));
+    // Merge statt Überschreiben: lokal Gewähltes/Editiertes hat Vorrang,
+    // damit ein veralteter/leerer Remote-Stand NIE lokale Eingaben löscht.
+    const localState = getState();
+    const merged = Object.assign({}, remoteState, localState);
+    localStorage.setItem('smutje_' + LIST_ID, JSON.stringify(merged));
+    syncStateToProxy(merged); // Remote an den gemergten Stand angleichen
   }
   const state = getState();
   restoreDynamicItems(state);
