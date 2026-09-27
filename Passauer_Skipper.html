@@ -93,6 +93,9 @@
   .einplanen-hinweis { font-size: 0.75em; color: #e85d04; margin-top: 6px; font-style: italic; }
 
 
+
+  /* RESERVIERT-BADGE */
+  .reserviert-badge { display: inline-block; background: #ede9fe; color: #6b3fa0; border-radius: 4px; padding: 2px 8px; font-size: 0.72em; font-weight: 700; margin-top: 3px; }
   /* REZEPT AKTIONEN */
   .recipe-actions { display: flex; gap: 8px; margin-top: 10px; }
   .btn-edit-rezept { background: #f0f4f8; color: #1a3a5c; border: none; border-radius: 8px; padding: 7px 14px; font-size: 0.78em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; }
@@ -915,6 +918,7 @@ function rezeptEinplanenDyn(rid, btn) {
     const hint = btn.nextElementSibling;
     if (hint) hint.textContent = '⚠️ Nur drücken wenn das Gericht in den nächsten 48h gekocht wird';
     document.querySelectorAll('.rezept-fresh-' + rid).forEach(item => { item.style.display = 'none'; });
+    clearReservierungen(rid);
     updateProgress();
     return;
   }
@@ -925,20 +929,40 @@ function rezeptEinplanenDyn(rid, btn) {
   btn.classList.add('eingeplant');
   btn.textContent = '✓ Eingeplant – antippen zum Deaktivieren';
 
-  const existingNames = getExistingItemNames();
+  // Rezeptdaten holen (dyn oder statisch)
+  const rezeptData = state['dyn_rezept_' + rid];
+  const titel = rezeptData ? rezeptData.titel : btn.closest('.info-card') ? btn.closest('.info-card').querySelector('.recipe-title').textContent.replace('🍽️ ', '') : 'Rezept';
+  const zutaten = rezeptData ? rezeptData.zutaten : [];
+
   let skipped = 0;
-  document.querySelectorAll('.rezept-fresh-' + rid).forEach(item => {
+  let reserviert = 0;
+
+  // Für jede Rezept-Zutat: prüfen ob schon auf Liste → reservieren, sonst als neues Item zeigen
+  const shownFreshItems = [];
+  document.querySelectorAll('.rezept-fresh-' + rid).forEach((item, idx) => {
     const nameEl = item.querySelector('.item-name');
-    const name = nameEl ? nameEl.textContent.split('–')[0].trim().toLowerCase() : '';
-    if (existingNames.has(name) || isZutatAlreadyAssigned(name)) {
+    const rawName = nameEl ? nameEl.textContent.split('–')[0].trim() : '';
+
+    // Suche auf bestehender Liste
+    const found = findItemOnList(rawName);
+    if (found.length > 0) {
+      // Als reserviert markieren statt duplizieren
+      found.forEach(f => markAsReserviert(f.id, titel, rid));
+      reserviert++;
+    } else if (isZutatAlreadyAssigned(rawName)) {
       skipped++;
-      return;
+    } else {
+      item.style.display = 'flex';
     }
-    item.style.display = 'flex';
   });
-  if (skipped > 0) {
+
+  let hintText = '⚠️ Nur drücken wenn das Gericht in den nächsten 48h gekocht wird';
+  const parts = [];
+  if (reserviert > 0) parts.push(reserviert + ' Zutat(en) bereits auf der Liste – als reserviert markiert');
+  if (skipped > 0) parts.push(skipped + ' Zutat(en) bereits einem anderen Rezept zugewiesen');
+  if (parts.length > 0) {
     const hint = btn.nextElementSibling;
-    if (hint) hint.textContent = `⚠️ ${skipped} Zutat(en) bereits auf der Liste – nicht doppelt hinzugefügt.`;
+    if (hint) hint.textContent = '✅ ' + parts.join(' · ');
   }
   updateProgress();
 }
@@ -965,7 +989,24 @@ function rezeptEinplanen(rezeptId, btn) {
   setState(state);
   btn.classList.add('eingeplant');
   btn.textContent = '✓ Eingeplant – antippen zum Deaktivieren';
-  document.querySelectorAll('.rezept-fresh-' + rezeptId).forEach(item => { item.style.display = 'flex'; });
+
+  const titel = btn.closest('.info-card') ? btn.closest('.info-card').querySelector('.recipe-title').textContent.replace('🍽️ ', '') : 'Rezept';
+  let reserviert = 0;
+  document.querySelectorAll('.rezept-fresh-' + rezeptId).forEach(item => {
+    const nameEl = item.querySelector('.item-name');
+    const rawName = nameEl ? nameEl.textContent.split('–')[0].trim() : '';
+    const found = findItemOnList(rawName);
+    if (found.length > 0) {
+      found.forEach(f => markAsReserviert(f.id, titel, rezeptId));
+      reserviert++;
+    } else {
+      item.style.display = 'flex';
+    }
+  });
+  if (reserviert > 0) {
+    const hint = btn.nextElementSibling;
+    if (hint) hint.textContent = '✅ ' + reserviert + ' Zutat(en) bereits auf der Liste – als reserviert markiert';
+  }
   updateProgress();
 }
 
@@ -976,6 +1017,98 @@ function showTab(name, el) {
   if (el) el.classList.add('active');
 }
 
+
+
+// Normalisiert einen Zutatennamen für Vergleich
+function normalizeZutat(name) {
+  return name.toLowerCase()
+    .replace(/[^a-züäöß0-9]/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')[0]; // erstes Wort reicht für Matching (z.B. "Eier" aus "Eier 18 Stück")
+}
+
+// Suche alle sichtbaren, nicht-gelöschten Items auf der Einkaufsliste
+// Gibt {id, nameEl, metaEl, itemEl} zurück wenn Zutatname matcht
+function findItemOnList(zutatName) {
+  const needle = normalizeZutat(zutatName);
+  const results = [];
+  document.querySelectorAll('#tab-einkauf .item:not(.deleted)').forEach(item => {
+    const nameEl = item.querySelector('.item-name');
+    if (!nameEl) return;
+    const haystack = normalizeZutat(nameEl.textContent);
+    if (haystack === needle || haystack.startsWith(needle) || needle.startsWith(haystack)) {
+      results.push({ id: item.id.replace('item_', ''), nameEl, item });
+    }
+  });
+  return results;
+}
+
+// Markiere ein Item als reserviert für ein Rezept
+function markAsReserviert(itemId, rezeptTitel, rid) {
+  const el = document.getElementById('item_' + itemId);
+  if (!el) return;
+  // Badge hinzufügen falls noch nicht vorhanden
+  if (!el.querySelector('.reserviert-badge[data-rid="' + rid + '"]')) {
+    let metaEl = el.querySelector('.item-meta');
+    if (!metaEl) {
+      metaEl = document.createElement('div');
+      metaEl.className = 'item-meta';
+      el.querySelector('.item-info').appendChild(metaEl);
+    }
+    const badge = document.createElement('span');
+    badge.className = 'reserviert-badge';
+    badge.setAttribute('data-rid', rid);
+    badge.textContent = '🍽️ reserviert für: ' + rezeptTitel;
+    metaEl.appendChild(badge);
+  }
+  // State
+  const state = getState();
+  if (!state['reserviert_' + rid]) state['reserviert_' + rid] = [];
+  if (!state['reserviert_' + rid].includes(itemId)) state['reserviert_' + rid].push(itemId);
+  setState(state);
+}
+
+// Reservierungen eines Rezepts aufheben
+function clearReservierungen(rid) {
+  const state = getState();
+  const ids = state['reserviert_' + rid] || [];
+  ids.forEach(itemId => {
+    const el = document.getElementById('item_' + itemId);
+    if (el) {
+      el.querySelectorAll('.reserviert-badge[data-rid="' + rid + '"]').forEach(b => b.remove());
+    }
+  });
+  delete state['reserviert_' + rid];
+  setState(state);
+}
+
+// Reservierungen beim Reload wiederherstellen
+function restoreReservierungen(state) {
+  Object.keys(state).filter(k => k.startsWith('reserviert_') && Array.isArray(state[k])).forEach(k => {
+    const rid = k.replace('reserviert_', '');
+    if (!state['rezept_eingeplant_' + rid]) return; // nur wenn eingeplant
+    const rezeptData = state['dyn_rezept_' + rid];
+    const titel = rezeptData ? rezeptData.titel : 'Rezept';
+    state[k].forEach(itemId => {
+      const el = document.getElementById('item_' + itemId);
+      if (!el || el.classList.contains('deleted')) return;
+      if (!el.querySelector('.reserviert-badge[data-rid="' + rid + '"]')) {
+        let metaEl = el.querySelector('.item-meta');
+        if (!metaEl) {
+          metaEl = document.createElement('div');
+          metaEl.className = 'item-meta';
+          el.querySelector('.item-info').appendChild(metaEl);
+        }
+        const badge = document.createElement('span');
+        badge.className = 'reserviert-badge';
+        badge.setAttribute('data-rid', rid);
+        badge.textContent = '🍽️ reserviert für: ' + titel;
+        metaEl.appendChild(badge);
+      }
+    });
+  });
+}
 
 function openRezeptEdit(rid) {
   const state = getState();
@@ -1106,6 +1239,7 @@ function restoreDynamicItems(state) {
 window.onload = function() {
   const state = getState();
   restoreDynamicItems(state);
+  restoreReservierungen(state);
   Object.keys(state).forEach(id => {
     if (id.startsWith('del_') && state[id]) {
       const el = document.getElementById('item_' + id.replace('del_', ''));
