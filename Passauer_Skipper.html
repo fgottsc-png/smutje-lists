@@ -510,7 +510,7 @@
 <footer>Erstellt von Smutje · seebaertv ⚓ · Stand: 27.09.2026</footer>
 
 <script>
-const LIST_ID = 'a0fbbb8f';
+const LIST_ID = '1d0c786e';
 const CREW_ANZAHL = 6;
 let dynamicItemCounter = 10000;
 let currentKategorie = '';
@@ -876,18 +876,33 @@ function saveRezept() {
 
 function rezeptEinplanenDyn(rid, btn) {
   const state = getState();
-  if (state['rezept_eingeplant_' + rid]) return;
-  state['rezept_eingeplant_' + rid] = true;
+  const key = 'rezept_eingeplant_' + rid;
+
+  if (state[key]) {
+    // Deaktivieren
+    if (!confirm('Rezept aus der Planung entfernen? Die Zutaten verschwinden wieder von der Einkaufsliste.')) return;
+    state[key] = false;
+    setState(state);
+    btn.classList.remove('eingeplant');
+    btn.textContent = '🛒 Jetzt einplanen – Zutaten zur Einkaufsliste hinzufügen';
+    const hint = btn.nextElementSibling;
+    if (hint) hint.textContent = '⚠️ Nur drücken wenn das Gericht in den nächsten 48h gekocht wird';
+    document.querySelectorAll('.rezept-fresh-' + rid).forEach(item => { item.style.display = 'none'; });
+    updateProgress();
+    return;
+  }
+
+  // Aktivieren
+  state[key] = true;
   setState(state);
   btn.classList.add('eingeplant');
-  btn.textContent = '✓ Eingeplant – Zutaten auf der Liste';
+  btn.textContent = '✓ Eingeplant – antippen zum Deaktivieren';
 
   const existingNames = getExistingItemNames();
   let skipped = 0;
   document.querySelectorAll('.rezept-fresh-' + rid).forEach(item => {
     const nameEl = item.querySelector('.item-name');
     const name = nameEl ? nameEl.textContent.split('–')[0].trim().toLowerCase() : '';
-    // Nicht zeigen wenn bereits auf Liste oder bereits anderem Rezept zugewiesen
     if (existingNames.has(name) || isZutatAlreadyAssigned(name)) {
       skipped++;
       return;
@@ -896,18 +911,33 @@ function rezeptEinplanenDyn(rid, btn) {
   });
   if (skipped > 0) {
     const hint = btn.nextElementSibling;
-    if (hint) hint.textContent = `⚠️ ${skipped} Zutat(en) bereits auf der Liste oder einem anderen Rezept zugewiesen – nicht doppelt hinzugefügt.`;
+    if (hint) hint.textContent = `⚠️ ${skipped} Zutat(en) bereits auf der Liste – nicht doppelt hinzugefügt.`;
   }
   updateProgress();
 }
 
 function rezeptEinplanen(rezeptId, btn) {
   const state = getState();
-  if (state['rezept_eingeplant_' + rezeptId]) return;
-  state['rezept_eingeplant_' + rezeptId] = true;
+  const key = 'rezept_eingeplant_' + rezeptId;
+
+  if (state[key]) {
+    // Deaktivieren
+    if (!confirm('Rezept aus der Planung entfernen? Frische Zutaten verschwinden wieder von der Einkaufsliste.')) return;
+    state[key] = false;
+    setState(state);
+    btn.classList.remove('eingeplant');
+    btn.textContent = '🛒 Jetzt einplanen – frische Zutaten zur Liste hinzufügen';
+    const hint = btn.nextElementSibling;
+    if (hint) hint.textContent = '⚠️ Nur drücken wenn das Gericht in den nächsten 48h gekocht wird';
+    document.querySelectorAll('.rezept-fresh-' + rezeptId).forEach(item => { item.style.display = 'none'; });
+    updateProgress();
+    return;
+  }
+
+  state[key] = true;
   setState(state);
   btn.classList.add('eingeplant');
-  btn.textContent = '✓ Eingeplant – frische Zutaten auf der Liste';
+  btn.textContent = '✓ Eingeplant – antippen zum Deaktivieren';
   document.querySelectorAll('.rezept-fresh-' + rezeptId).forEach(item => { item.style.display = 'flex'; });
   updateProgress();
 }
