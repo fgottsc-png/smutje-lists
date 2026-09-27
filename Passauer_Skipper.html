@@ -1156,12 +1156,20 @@ function deleteStaticRezept(rid) {
 
 function openRezeptEdit(rid) {
   const state = getState();
-  const d = state['dyn_rezept_' + rid];
-  if (!d) return;
+  if (state['rezept_eingeplant_' + rid]) {
+    alert('Bitte das Rezept zuerst deaktivieren, bevor es bearbeitet werden kann.');
+    return;
+  }
+  // Daten aus State oder DOM lesen
+  const d = state['dyn_rezept_' + rid] || {};
+  const cardEl = document.getElementById('rezept_' + rid);
+  const domTitel = cardEl ? (cardEl.querySelector('.recipe-title')?.textContent || '').replace('🍽️ ', '').trim() : '';
+  const domKoch = cardEl ? (cardEl.querySelector('.recipe-cook')?.textContent || '') : '';
+  const domAnpassung = cardEl ? (cardEl.querySelector('.item-meta')?.textContent || '').replace('⚠️ ', '').trim() : '';
   document.getElementById('editRezeptId').value = rid;
-  document.getElementById('editRzTitel').value = d.titel || '';
-  document.getElementById('editRzKoch').value = d.koch || '';
-  document.getElementById('editRzAnpassung').value = d.anpassung || '';
+  document.getElementById('editRzTitel').value = d.titel || domTitel;
+  document.getElementById('editRzKoch').value = d.koch || domKoch;
+  document.getElementById('editRzAnpassung').value = d.anpassung || domAnpassung;
   document.getElementById('editRzQuelle').value = d.quelle || '';
   openModal('modalRezeptEdit');
 }
@@ -1184,9 +1192,9 @@ function saveRezeptEdit() {
     setState(state);
     cardId = rid;
   } else {
-    // Dynamisches Rezept
+    // Dynamisches Rezept – State anlegen wenn nicht vorhanden
+    if (!state['dyn_rezept_' + rawId]) state['dyn_rezept_' + rawId] = { zutaten: [] };
     const d = state['dyn_rezept_' + rawId];
-    if (!d) return;
     d.titel = titel; d.koch = koch; d.anpassung = anpassung; d.quelle = quelle;
     setState(state);
     cardId = rawId;
@@ -1277,10 +1285,14 @@ function restoreDynamicItems(state) {
     document.getElementById('rezepte-extra').appendChild(card);
 
     // Zutaten-Items
-    let fs = document.getElementById('section-rezept-fresh-dyn');
+    // Bestehende hdr-orange Sektion (vom Generator) nutzen, keine neue anlegen
+    let fs = document.querySelector('#tab-einkauf .hdr-orange')?.closest('.section');
+    if (!fs) {
+      fs = document.getElementById('section-rezept-fresh-dyn');
+    }
     if (!fs) {
       fs = document.createElement('div'); fs.className = 'section'; fs.id = 'section-rezept-fresh-dyn';
-      fs.innerHTML = '<div class="section-header hdr-orange">\u{1F305} Frisches \u26a0\uFE0F \u2013 Rezept-Zutaten<span class="badge">0/0</span></div>';
+      fs.innerHTML = '<div class="section-header hdr-orange">🌅 Frisches ⚠️ – Rezept-Zutaten<span class="badge">0/0</span></div>';
       const panel = document.getElementById('tab-einkauf');
       panel.insertBefore(fs, panel.querySelector('.reset-btn'));
     }
