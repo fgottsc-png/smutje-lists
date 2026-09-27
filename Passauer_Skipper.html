@@ -9,6 +9,10 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Open Sans', sans-serif; background: #f9bf33; color: #1a1a2e; min-height: 100vh; }
 
+
+  /* SYNC BUTTON */
+  .sync-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: #1a3a5c; color: #f9bf33; border: none; border-radius: 10px; padding: 10px 18px; font-size: 0.85em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; margin: 0 0 10px; width: 100%; }
+  .sync-status { font-size: 0.75em; color: #888; text-align: center; margin-bottom: 12px; font-style: italic; }
   /* SPLASH */
   #splash { position: fixed; inset: 0; background: #f9bf33; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; padding: 32px 24px; text-align: center; }
   #splash img.splash-logo { width: 160px; height: 160px; object-fit: contain; margin-bottom: 28px; }
@@ -64,10 +68,6 @@
   .fuer-rezept { color: #6b3fa0; font-weight: 700; }
   .delete-btn { background: none; border: none; color: #ccc; font-size: 1.1em; cursor: pointer; padding: 2px 4px; border-radius: 4px; flex-shrink: 0; transition: color 0.15s; align-self: center; }
   .delete-btn:hover { color: #dc2626; }
-  .item-actions { display: flex; gap: 2px; align-self: center; flex-shrink: 0; }
-  .item-act-btn { background: none; border: none; font-size: 1em; cursor: pointer; padding: 2px 3px; border-radius: 4px; opacity: 0.55; line-height: 1.2; transition: opacity 0.15s, background 0.15s; }
-  .item-act-btn:hover { opacity: 1; background: #f0f4f8; }
-  .item-meta .item-menge:not(:last-child)::after { content: ' · '; }
 
   .tag { display: inline-block; border-radius: 4px; padding: 1px 6px; font-size: 0.72em; font-weight: 700; margin-right: 3px; }
   .tag-vegan   { background: #d4edda; color: #155724; }
@@ -150,7 +150,7 @@
 
 <!-- SPLASH -->
 <div id="splash">
-  <img class="splash-logo" src="https://htlgeyvr.gensparkclaw.com/dersmutje.png" alt="Smutje Logo">
+  <img class="splash-logo" src="https://fgottsc-png.github.io/smutje-lists/dersmutje.png" alt="Smutje Logo">
   <div class="splash-presented">Smutje wird präsentiert von</div>
   <div class="splash-sponsor">
     <a href="https://www.marinepool.com" target="_blank" rel="noopener">MARINEPOOL<br>Fashion für Segler</a>
@@ -178,35 +178,23 @@
   </div>
 </div>
 
-<!-- MODAL: Artikel bearbeiten (Name & Menge) -->
-<div class="modal-overlay" id="modalItemEdit">
+<!-- MODAL: Mitbringen hinzufügen -->
+<div class="modal-overlay" id="modalMitbringen">
   <div class="modal">
-    <h2 id="modalItemEditTitle">✏️ Artikel bearbeiten</h2>
-    <input type="hidden" id="editItemId">
-    <label>Name *</label>
-    <input type="text" id="editItemName" placeholder="z.B. Pasta, Bier, Sonnencreme…">
+    <h2>Mitbringen hinzufügen</h2>
+    <label>Was wird mitgebracht? *</label>
+    <input type="text" id="newMitbringenName" placeholder="z.B. Rum, Gewürze, Töpfe…">
     <label>Menge</label>
-    <input type="text" id="editItemMenge" placeholder="z.B. 500 g, 2 Flaschen">
+    <input type="text" id="newMitbringenMenge" placeholder="z.B. 1 Flasche, 500 g">
+    <label>Von wem? *</label>
+    <input type="text" id="newMitbringenPerson" placeholder="z.B. Florian">
     <div class="modal-actions">
-      <button class="modal-btn-cancel" onclick="closeModal('modalItemEdit')">Abbrechen</button>
-      <button class="modal-btn-primary" onclick="saveItemEdit()">Speichern</button>
+      <button class="modal-btn-cancel" onclick="closeModal('modalMitbringen')">Abbrechen</button>
+      <button class="modal-btn-primary" onclick="saveMitbringen()">Hinzufügen</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: Mitbringer setzen/entfernen -->
-<div class="modal-overlay" id="modalItemMb">
-  <div class="modal">
-    <h2>🧳 Bringt jemand mit?</h2>
-    <input type="hidden" id="mbItemId">
-    <label>Name der Person (leer lassen = entfernen)</label>
-    <input type="text" id="mbItemPerson" placeholder="z.B. Florian">
-    <div class="modal-actions">
-      <button class="modal-btn-cancel" onclick="closeModal('modalItemMb')">Abbrechen</button>
-      <button class="modal-btn-primary" onclick="saveItemMb()">Speichern</button>
-    </div>
-  </div>
-</div>
 
 <!-- MODAL: Rezept bearbeiten -->
 <div class="modal-overlay" id="modalRezeptEdit">
@@ -283,7 +271,7 @@
 </div>
 
 <header>
-  <img class="logo" src="https://htlgeyvr.gensparkclaw.com/dersmutje.png" alt="Smutje Logo">
+  <img class="logo" src="https://fgottsc-png.github.io/smutje-lists/dersmutje.png" alt="Smutje Logo">
   <h1>⚓ Passauer Skipper</h1>
   <div class="subtitle">6 Personen · 8 Tage · ab 06.10.2026 · Punat, Kroatien</div>
   <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
@@ -292,6 +280,7 @@
 
 <div class="tabs">
   <div class="tab active" onclick="showTab('einkauf', this)">🛒 Einkauf</div>
+  <div class="tab" onclick="showTab('mitbringen', this)">🧳 Mitbringen</div>
   <div class="tab" onclick="showTab('rezepte', this)">🍽️ Rezepte</div>
   <div class="tab" onclick="showTab('crew', this)">👥 Crew</div>
 </div>
@@ -338,27 +327,27 @@
   <div class="checkbox" onclick="toggleItem('e_10')"></div>
   <div class="item-info" onclick="toggleItem('e_10')"><div class="item-name">Gewürze (Paprika, Curry, Oregano, Chili, Kreuzkümmel)</div><div class='item-meta'>je 1 Tüte</div></div>
   <button class="delete-btn" onclick="deleteItem('e_10', event)" title="Entfernen">🗑</button>
-</div></div><div class="section" id="section-Frisches"><div class="section-header hdr-orange">🌅 Frisches ⚠️ – nur die nächsten 2 Tage<span class="badge">0/7</span><button class="add-btn-sec" onclick="openAddArtikel('Frisches', '🌅 Frisches ⚠️ – nur die nächsten 2 Tage')" title="Hinzufügen">＋</button></div><div class="item rezept-fresh-r0" id="item_e_45" style="display:none; background:#fff8e1;">
+</div></div><div class="section" id="section-Frisches"><div class="section-header hdr-orange">🌅 Frisches ⚠️ – nur erste 3 Tage<span class="badge">0/7</span><button class="add-btn-sec" onclick="openAddArtikel('Frisches', '🌅 Frisches ⚠️ – nur erste 3 Tage')" title="Hinzufügen">＋</button></div><div class="item rezept-fresh-r0" id="item_e_44" style="display:none; background:#fff8e1;">
+  <div class="checkbox" onclick="toggleItem('e_44')"></div>
+  <div class="item-info" onclick="toggleItem('e_44')">
+    <div class="item-name">Hühnchenbrust 1,2 kg</div>
+    <div class="item-meta"><span class="fuer-rezept">🍽️ für: Chicken Curry mit Pasta</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
+  </div>
+  <button class="delete-btn" onclick="deleteItem('e_44', event)" title="Entfernen">🗑</button>
+</div><div class="item rezept-fresh-r0" id="item_e_45" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_45')"></div>
   <div class="item-info" onclick="toggleItem('e_45')">
-    <div class="item-name">Hühnchenbrust 1,2 kg</div>
+    <div class="item-name">Sahne laktosefrei 1 Becher</div>
     <div class="item-meta"><span class="fuer-rezept">🍽️ für: Chicken Curry mit Pasta</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
   </div>
   <button class="delete-btn" onclick="deleteItem('e_45', event)" title="Entfernen">🗑</button>
 </div><div class="item rezept-fresh-r0" id="item_e_46" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_46')"></div>
   <div class="item-info" onclick="toggleItem('e_46')">
-    <div class="item-name">Sahne laktosefrei 1 Becher</div>
-    <div class="item-meta"><span class="fuer-rezept">🍽️ für: Chicken Curry mit Pasta</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
-  </div>
-  <button class="delete-btn" onclick="deleteItem('e_46', event)" title="Entfernen">🗑</button>
-</div><div class="item rezept-fresh-r0" id="item_e_47" style="display:none; background:#fff8e1;">
-  <div class="checkbox" onclick="toggleItem('e_47')"></div>
-  <div class="item-info" onclick="toggleItem('e_47')">
     <div class="item-name">Paprika 1 Stück (extra – für Curry)</div>
     <div class="item-meta"><span class="fuer-rezept">🍽️ für: Chicken Curry mit Pasta</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
   </div>
-  <button class="delete-btn" onclick="deleteItem('e_47', event)" title="Entfernen">🗑</button>
+  <button class="delete-btn" onclick="deleteItem('e_46', event)" title="Entfernen">🗑</button>
 </div><div class="item" id="item_e_11">
   <div class="checkbox" onclick="toggleItem('e_11')"></div>
   <div class="item-info" onclick="toggleItem('e_11')"><div class="item-name">Tomaten</div><div class='item-meta'>2 kg</div></div>
@@ -471,7 +460,7 @@
   <div class="checkbox" onclick="toggleItem('e_38')"></div>
   <div class="item-info" onclick="toggleItem('e_38')"><div class="item-name">Parmesan (laktosefrei für 1)</div><div class='item-meta'>200 g</div></div>
   <button class="delete-btn" onclick="deleteItem('e_38', event)" title="Entfernen">🗑</button>
-</div></div><div class="section" id="section-Getr_nke"><div class="section-header hdr-red">🍺 Getränke<span class="badge">0/6</span><button class="add-btn-sec" onclick="openAddArtikel('Getränke', '🍺 Getränke')" title="Hinzufügen">＋</button></div><div class="item" id="item_e_39">
+</div></div><div class="section" id="section-Getr_nke"><div class="section-header hdr-red">🍺 Getränke<span class="badge">0/5</span><button class="add-btn-sec" onclick="openAddArtikel('Getränke', '🍺 Getränke')" title="Hinzufügen">＋</button></div><div class="item" id="item_e_39">
   <div class="checkbox" onclick="toggleItem('e_39')"></div>
   <div class="item-info" onclick="toggleItem('e_39')"><div class="item-name">Bier</div><div class='item-meta'>1 Palette</div></div>
   <button class="delete-btn" onclick="deleteItem('e_39', event)" title="Entfernen">🗑</button>
@@ -491,12 +480,21 @@
   <div class="checkbox" onclick="toggleItem('e_43')"></div>
   <div class="item-info" onclick="toggleItem('e_43')"><div class="item-name">Kaffee / Tee</div><div class='item-meta'>500 g / 2 Packungen</div></div>
   <button class="delete-btn" onclick="deleteItem('e_43', event)" title="Entfernen">🗑</button>
-</div><div class="item" id="item_e_44">
-  <div class="checkbox" onclick="toggleItem('e_44')"></div>
-  <div class="item-info" onclick="toggleItem('e_44')"><div class="item-name">Southern Comfort</div><div class='item-meta'>1 Flasche</div></div>
-  <button class="delete-btn" onclick="deleteItem('e_44', event)" title="Entfernen">🗑</button>
 </div></div>
+<button class="sync-btn" onclick="syncNow()">☁️ Änderungen speichern & Smutje informieren</button>
+<div class="sync-status" id="syncStatus">Letzter Sync: noch nie</div>
 <button class="reset-btn" onclick="resetAll()">↺ Alle Häkchen zurücksetzen</button>
+</div>
+
+<!-- TAB: MITBRINGEN -->
+<div class="panel" id="tab-mitbringen">
+<div class="section"><div class="section-header hdr-blue">🧳 Wird mitgebracht<span class="badge">0/1</span></div><div class="item" id="item_m_0">
+  <div class="checkbox" onclick="toggleItem('m_0')"></div>
+  <div class="item-info" onclick="toggleItem('m_0')"><div class="item-name">Rum</div><div class="item-meta">3 Flaschen · <span class="mitbringer">🧳 Florian</span></div></div>
+  <button class="delete-btn" onclick="deleteItem('m_0', event)" title="Entfernen">🗑</button>
+</div></div>
+<button class="add-mitbringen-btn" onclick="openModal('modalMitbringen')">+ Mitbringen hinzufügen</button>
+<div id="mitbringen-extra"></div>
 </div>
 
 <!-- TAB: REZEPTE -->
@@ -556,7 +554,7 @@
 const LIST_ID = '1d0c786e';
 const LIST_FILENAME = 'Passauer_Skipper';
 const CREW_ANZAHL = 6;
-const STATE_PROXY = 'https://htlgeyvr.gensparkclaw.com/smutje-api/' + LIST_FILENAME;
+const STATE_PROXY = 'http://127.0.0.1:18790/' + LIST_FILENAME;
 let dynamicItemCounter = 10000;
 let currentKategorie = '';
 let currentKategorieLabel = '';
@@ -570,20 +568,10 @@ function setState(s) {
 }
 
 let _syncTimer = null;
-let _pendingState = null;
 function scheduleSyncToGitHub(state) {
-  _pendingState = state;
   clearTimeout(_syncTimer);
-  _syncTimer = setTimeout(() => { _syncTimer = null; const s = _pendingState; _pendingState = null; syncStateToProxy(s); }, 400);
+  _syncTimer = setTimeout(() => syncStateToProxy(state), 1500);
 }
-function flushSync() {
-  if (_syncTimer) { clearTimeout(_syncTimer); _syncTimer = null; }
-  if (_pendingState) { const s = _pendingState; _pendingState = null; syncStateToProxy(s); }
-}
-// Nie Eingaben verlieren: sofort senden, wenn der Tab versteckt/geschlossen wird
-window.addEventListener('pagehide', flushSync);
-window.addEventListener('beforeunload', flushSync);
-document.addEventListener('visibilitychange', function() { if (document.hidden) flushSync(); });
 
 async function syncStateToProxy(state) {
   try {
@@ -643,7 +631,7 @@ function deleteItem(id, event) {
 function resetAll() {
   if (confirm('Alle Häkchen zurücksetzen? (Gelöschte Artikel bleiben entfernt)')) {
     const state = getState();
-    Object.keys(state).forEach(k => { if (!k.startsWith('del_') && !k.startsWith('rezept_') && !k.startsWith('dyn_') && !k.startsWith('edit_') && !k.startsWith('mb_')) delete state[k]; });
+    Object.keys(state).forEach(k => { if (!k.startsWith('del_') && !k.startsWith('rezept_') && !k.startsWith('dyn_')) delete state[k]; });
     setState(state);
     document.querySelectorAll('.item:not(.deleted)').forEach(i => i.classList.remove('checked'));
     updateProgress();
@@ -662,180 +650,6 @@ function openModal(id) {
 }
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
-}
-
-/* ── FRISCHES-SEKTION (genau eine) ──────────────────────────────────────
-   Liefert IMMER die vorhandene Frisches-Sektion (hdr-orange) aus dem
-   Einkauf-Tab (vom Generator erzeugt). Nur wenn keine existiert, wird
-   eine mit demselben Titel angelegt. */
-function getOrCreateFrischesSection() {
-  let fs = document.querySelector('#tab-einkauf .section-header.hdr-orange');
-  if (fs) return fs.closest('.section');
-  fs = document.getElementById('section-rezept-fresh-dyn');
-  if (fs) {
-    // Falls eine Alt-Sektion existiert: Titel korrigieren, nicht neu anlegen
-    const h = fs.querySelector('.section-header');
-    if (h) { h.className = 'section-header hdr-orange'; h.innerHTML = '🌅 Frisches ⚠️ – nur die nächsten 2 Tage<span class="badge">0/0</span>'; }
-    return fs;
-  }
-  const panel = document.getElementById('tab-einkauf');
-  fs = document.createElement('div');
-  fs.className = 'section';
-  fs.id = 'section-rezept-fresh-dyn';
-  fs.innerHTML = '<div class="section-header hdr-orange">🌅 Frisches ⚠️ – nur die nächsten 2 Tage<span class="badge">0/0</span></div>';
-  panel.insertBefore(fs, panel.querySelector('.reset-btn'));
-  return fs;
-}
-
-/* ── ITEM-META NORMALISIEREN ────────────────────────────────────────────
-   Lagert die führende Mengenangabe in ein <span class="item-menge"> aus,
-   damit sie später per Edit sauber ersetzt werden kann. */
-function normalizeItemMeta(el) {
-  const metaEl = el.querySelector('.item-meta');
-  if (!metaEl || metaEl.querySelector('.item-menge')) return;
-  let leading = '';
-  let seenEl = false;
-  const rest = [];
-  [...metaEl.childNodes].forEach(n => {
-    if (!seenEl && n.nodeType === 3) { leading += n.textContent; }
-    else { seenEl = true; rest.push(n); }
-  });
-  leading = leading.replace(/\s*·\s*$/, '').replace(/^\s*·\s*/, '').trim();
-  metaEl.innerHTML = '';
-  if (leading) {
-    const mEl = document.createElement('span');
-    mEl.className = 'item-menge';
-    mEl.textContent = leading;
-    metaEl.appendChild(mEl);
-  }
-  rest.forEach(n => metaEl.appendChild(n));
-}
-
-/* Setzt/ersetzt die Mengenangabe eines Items. */
-function setItemMengeEl(el, menge) {
-  const info = el.querySelector('.item-info');
-  if (!info) return;
-  let metaEl = el.querySelector('.item-meta');
-  let mEl = metaEl ? metaEl.querySelector('.item-menge') : null;
-  if (!menge) { if (mEl) mEl.remove(); return; }
-  if (!metaEl) { metaEl = document.createElement('div'); metaEl.className = 'item-meta'; info.appendChild(metaEl); }
-  if (!mEl) { mEl = document.createElement('span'); mEl.className = 'item-menge'; metaEl.insertBefore(mEl, metaEl.firstChild); }
-  mEl.textContent = menge;
-}
-
-/* Setzt/entfernt das Mitbringer-Badge eines Items. */
-function applyMitbringerBadge(el, person) {
-  if (!el) return;
-  const existing = el.querySelectorAll('.item-meta .mitbringer');
-  if (person) {
-    let metaEl = el.querySelector('.item-meta');
-    if (!metaEl) {
-      const info = el.querySelector('.item-info');
-      if (!info) return;
-      metaEl = document.createElement('div'); metaEl.className = 'item-meta'; info.appendChild(metaEl);
-    }
-    if (existing.length === 0) {
-      const b = document.createElement('span'); b.className = 'mitbringer'; b.textContent = '🧳 ' + person;
-      metaEl.appendChild(b);
-    } else {
-      existing[0].textContent = '🧳 ' + person;
-      for (let i = 1; i < existing.length; i++) existing[i].remove();
-    }
-  } else {
-    existing.forEach(b => b.remove());
-  }
-}
-
-/* Wendet gespeicherte Edit-/Mitbringer-Overrides auf ein Item an. */
-function applyItemOverrides(id) {
-  const el = document.getElementById('item_' + id);
-  if (!el) return;
-  const state = getState();
-  const ed = state['edit_' + id];
-  if (ed) {
-    if (typeof ed.name === 'string' && ed.name) {
-      const nameEl = el.querySelector('.item-name');
-      if (nameEl) nameEl.textContent = ed.name;
-    }
-    if (typeof ed.menge === 'string') setItemMengeEl(el, ed.menge);
-  }
-  if (Object.prototype.hasOwnProperty.call(state, 'mb_' + id)) {
-    applyMitbringerBadge(el, state['mb_' + id]);
-  }
-}
-
-/* Rüstet eine Item-Zeile mit ✏️- und 🧳-Buttons aus. */
-function enhanceItem(id) {
-  const el = document.getElementById('item_' + id);
-  if (!el || el.dataset.smutjeEnhanced) return;
-  el.dataset.smutjeEnhanced = '1';
-  normalizeItemMeta(el);
-  const btnWrap = document.createElement('div');
-  btnWrap.className = 'item-actions';
-  const editBtn = document.createElement('button');
-  editBtn.type = 'button'; editBtn.className = 'item-act-btn'; editBtn.title = 'Name & Menge bearbeiten'; editBtn.textContent = '✏️';
-  editBtn.onclick = function(e) { e.stopPropagation(); openItemEdit(id); };
-  const mbBtn = document.createElement('button');
-  mbBtn.type = 'button'; mbBtn.className = 'item-act-btn'; mbBtn.title = 'Mitbringer setzen/entfernen'; mbBtn.textContent = '🧳';
-  mbBtn.onclick = function(e) { e.stopPropagation(); openMitbringerItem(id); };
-  btnWrap.appendChild(editBtn);
-  btnWrap.appendChild(mbBtn);
-  const del = el.querySelector('.delete-btn');
-  if (del) el.insertBefore(btnWrap, del); else el.appendChild(btnWrap);
-  applyItemOverrides(id);
-}
-
-function enhanceAllEinkaufItems() {
-  document.querySelectorAll('#tab-einkauf .item').forEach(item => {
-    if (item.id && item.id.indexOf('item_') === 0) enhanceItem(item.id.slice(5));
-  });
-}
-
-/* ✏️ Name & Menge bearbeiten */
-function openItemEdit(id) {
-  const state = getState();
-  if (state['del_' + id]) return;
-  const el = document.getElementById('item_' + id);
-  const ed = state['edit_' + id] || {};
-  const nameEl = el ? el.querySelector('.item-name') : null;
-  const mEl = el ? el.querySelector('.item-menge') : null;
-  document.getElementById('editItemId').value = id;
-  document.getElementById('editItemName').value = (ed.name != null ? ed.name : (nameEl ? nameEl.textContent : ''));
-  document.getElementById('editItemMenge').value = (ed.menge != null ? ed.menge : (mEl ? mEl.textContent : ''));
-  openModal('modalItemEdit');
-}
-
-function saveItemEdit() {
-  const id = document.getElementById('editItemId').value;
-  const state = getState();
-  if (state['del_' + id]) { closeModal('modalItemEdit'); return; }
-  const name = document.getElementById('editItemName').value.trim();
-  if (!name) { alert('Bitte einen Namen eingeben.'); return; }
-  const menge = document.getElementById('editItemMenge').value.trim();
-  state['edit_' + id] = { name, menge };
-  setState(state);
-  applyItemOverrides(id);
-  closeModal('modalItemEdit');
-}
-
-/* 🧳 Mitbringer setzen/entfernen */
-function openMitbringerItem(id) {
-  const state = getState();
-  if (state['del_' + id]) return;
-  document.getElementById('mbItemId').value = id;
-  document.getElementById('mbItemPerson').value = state['mb_' + id] || '';
-  openModal('modalItemMb');
-}
-
-function saveItemMb() {
-  const id = document.getElementById('mbItemId').value;
-  const state = getState();
-  if (state['del_' + id]) { closeModal('modalItemMb'); return; }
-  const person = document.getElementById('mbItemPerson').value.trim();
-  state['mb_' + id] = person;
-  setState(state);
-  applyMitbringerBadge(document.getElementById('item_' + id), person);
-  closeModal('modalItemMb');
 }
 
 // Artikel zu einer Sektion hinzufügen
@@ -889,7 +703,6 @@ function saveArtikel() {
     </div>
     <button class="delete-btn" onclick="deleteItem('${id}', event)" title="Entfernen">🗑</button>`;
   section.appendChild(item);
-  enhanceItem(id);
 
   // In State speichern
   const state = getState();
@@ -901,6 +714,46 @@ function saveArtikel() {
 }
 
 // Mitbringen
+function saveMitbringen() {
+  const name = document.getElementById('newMitbringenName').value.trim();
+  const menge = document.getElementById('newMitbringenMenge').value.trim();
+  const person = document.getElementById('newMitbringenPerson').value.trim();
+  if (!name || !person) { alert('Bitte Name und Person angeben.'); return; }
+  const id = 'dyn_m_' + (dynamicItemCounter++);
+
+  const container = document.getElementById('mitbringen-extra');
+  let section = document.getElementById('section-mitbringen-extra');
+  if (!section) {
+    section = document.createElement('div');
+    section.className = 'section';
+    section.id = 'section-mitbringen-extra';
+    section.innerHTML = `<div class="section-header hdr-blue">🧳 Zusätzlich mitbringen<span class="badge">0/0</span></div>`;
+    container.appendChild(section);
+  }
+
+  const item = document.createElement('div');
+  item.className = 'item';
+  item.id = 'item_' + id;
+  item.innerHTML = `
+    <div class="checkbox" onclick="toggleItem('${id}')"></div>
+    <div class="item-info" onclick="toggleItem('${id}')">
+      <div class="item-name">${name}</div>
+      <div class="item-meta">${menge ? menge + ' · ' : ''}<span class="mitbringer">🧳 ${person}</span></div>
+    </div>
+    <button class="delete-btn" onclick="deleteItem('${id}', event)" title="Entfernen">🗑</button>`;
+  section.appendChild(item);
+
+  const state = getState();
+  state['dyn_' + id] = { name, menge, person, type: 'mitbringen' };
+  setState(state);
+
+  document.getElementById('newMitbringenName').value = '';
+  document.getElementById('newMitbringenMenge').value = '';
+  document.getElementById('newMitbringenPerson').value = '';
+  closeModal('modalMitbringen');
+  updateProgress();
+}
+
 // REZEPT WIZARD
 let zutaten = [];
 let wCurrentStep = 1;
@@ -1065,8 +918,16 @@ function saveRezept() {
 
   document.getElementById('rezepte-extra').appendChild(card);
 
-  // Alle Zutaten als versteckte Items in die (einzige) Frisches-Sektion legen
-  const section = getOrCreateFrischesSection();
+  // Alle Zutaten als versteckte Items anlegen (frische + haltbare)
+  let section = document.getElementById('section-rezept-fresh-dyn');
+  if (!section) {
+    section = document.createElement('div');
+    section.className = 'section';
+    section.id = 'section-rezept-fresh-dyn';
+    section.innerHTML = `<div class="section-header hdr-orange">🌅 Frisches ⚠️ – Rezept-Zutaten<span class="badge">0/0</span></div>`;
+    const panel = document.getElementById('tab-einkauf');
+    panel.insertBefore(section, panel.querySelector('.reset-btn'));
+  }
 
   allZutaten.forEach((z, i) => {
     const fid = rid + '_f' + i;
@@ -1083,7 +944,6 @@ function saveRezept() {
       </div>
       <button class="delete-btn" onclick="deleteItem('${fid}', event)" title="Entfernen">🗑</button>`;
     section.appendChild(fitem);
-    enhanceItem(fid);
   });
 
   const state = getState();
@@ -1462,6 +1322,21 @@ function deleteRezept(rid) {
 }
 
 function restoreDynamicItems(state) {
+  // Mitbringen
+  Object.keys(state).filter(k => k.startsWith('dyn_') && state[k] && state[k].type === 'mitbringen').forEach(k => {
+    const d = state[k]; const id = k.replace('dyn_', '');
+    if (document.getElementById('item_' + id)) return;
+    let sec = document.getElementById('section-mitbringen-extra');
+    if (!sec) {
+      sec = document.createElement('div'); sec.className = 'section'; sec.id = 'section-mitbringen-extra';
+      sec.innerHTML = '<div class="section-header hdr-blue">\u{1F9F3} Zus\u00e4tzlich mitbringen<span class="badge">0/0</span></div>';
+      document.getElementById('mitbringen-extra').appendChild(sec);
+    }
+    const el = document.createElement('div'); el.className = 'item'; el.id = 'item_' + id;
+    el.innerHTML = '<div class="checkbox" onclick="toggleItem(\'' + id + '\')"></div><div class="item-info" onclick="toggleItem(\'' + id + '\')"><div class="item-name">' + d.name + '</div><div class="item-meta">' + (d.menge ? d.menge + ' \u00b7 ' : '') + '<span class="mitbringer">\u{1F9F3} ' + d.person + '</span></div></div><button class="delete-btn" onclick="deleteItem(\'' + id + '\', event)" title="Entfernen">\u{1F5D1}</button>';
+    sec.appendChild(el);
+  });
+
   // Einkauf-Artikel
   Object.keys(state).filter(k => k.startsWith('dyn_') && state[k] && state[k].kategorie).forEach(k => {
     const d = state[k]; const id = k.replace('dyn_', '');
@@ -1495,7 +1370,16 @@ function restoreDynamicItems(state) {
 
     // Zutaten-Items
     // Bestehende hdr-orange Sektion (vom Generator) nutzen, keine neue anlegen
-    const fs = getOrCreateFrischesSection();
+    let fs = document.querySelector('#tab-einkauf .hdr-orange')?.closest('.section');
+    if (!fs) {
+      fs = document.getElementById('section-rezept-fresh-dyn');
+    }
+    if (!fs) {
+      fs = document.createElement('div'); fs.className = 'section'; fs.id = 'section-rezept-fresh-dyn';
+      fs.innerHTML = '<div class="section-header hdr-orange">🌅 Frisches ⚠️ – Rezept-Zutaten<span class="badge">0/0</span></div>';
+      const panel = document.getElementById('tab-einkauf');
+      panel.insertBefore(fs, panel.querySelector('.reset-btn'));
+    }
     d.zutaten.forEach((z, i) => {
       const fid = rid + '_f' + i;
       if (document.getElementById('item_' + fid)) return;
@@ -1504,28 +1388,90 @@ function restoreDynamicItems(state) {
       fi.style.background = z.isFresh ? '#fff8e1' : '#f8f8ff';
       fi.innerHTML = '<div class="checkbox" onclick="toggleItem(\'' + fid + '\')"></div><div class="item-info" onclick="toggleItem(\'' + fid + '\')"><div class="item-name">' + z.name + (z.menge ? ' \u2013 ' + z.menge : '') + '</div><div class="item-meta"><span class="fuer-rezept">\u{1F37D}\uFE0F f\u00fcr: ' + d.titel + '</span>' + (z.isFresh ? ' \u00b7 <span style="color:#e85d04;font-weight:700;">\u26a0\uFE0F Frischware</span>' : '') + '</div></div><button class="delete-btn" onclick="deleteItem(\'' + fid + '\', event)" title="Entfernen">\u{1F5D1}</button>';
       fs.appendChild(fi);
-      enhanceItem(fid);
     });
   });
-
-  enhanceAllEinkaufItems();
 }
 
+
+async function syncNow() {
+  const state = getState();
+  const btn = document.querySelector('.sync-btn');
+  const statusEl = document.getElementById('syncStatus');
+  if (btn) { btn.textContent = '⏳ Speichern…'; btn.disabled = true; }
+
+  // Erst Proxy versuchen
+  let proxyOk = false;
+  try {
+    const r = await fetch(STATE_PROXY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state)
+    });
+    proxyOk = r.ok;
+  } catch(e) {}
+
+  const now = new Date().toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+
+  if (proxyOk) {
+    if (btn) { btn.textContent = '✅ Gespeichert – Smutje ist informiert'; btn.disabled = false; }
+    if (statusEl) statusEl.textContent = 'Letzter Sync: ' + now + ' (automatisch)';
+    setTimeout(() => { if (btn) btn.textContent = '☁️ Änderungen speichern & Smutje informieren'; }, 3000);
+  } else {
+    // Fallback: WhatsApp-Link mit kompaktem State-Summary
+    const summary = buildStateSummary(state);
+    const waText = encodeURIComponent('🔄 WebListen-Sync ' + LIST_FILENAME + ':\n' + summary);
+    const waUrl = 'https://wa.me/4917663332850?text=' + waText;
+    if (btn) { btn.textContent = '📱 Über WhatsApp senden'; btn.disabled = false; }
+    if (statusEl) statusEl.textContent = 'Proxy offline – bitte über WhatsApp senden';
+    window.open(waUrl, '_blank');
+    setTimeout(() => { if (btn) btn.textContent = '☁️ Änderungen speichern & Smutje informieren'; }, 5000);
+  }
+}
+
+function buildStateSummary(state) {
+  const lines = [];
+  // Eingeplante Rezepte
+  const eingeplant = Object.keys(state).filter(k => k.startsWith('rezept_eingeplant_') && state[k] === true);
+  if (eingeplant.length) {
+    eingeplant.forEach(k => {
+      const rid = k.replace('rezept_eingeplant_', '');
+      const d = state['dyn_rezept_' + rid];
+      const card = document.getElementById('rezept_' + rid);
+      const titel = d ? d.titel : (card ? card.querySelector('.recipe-title')?.textContent?.replace('🍽️ ','') : rid);
+      lines.push('✅ Eingeplant: ' + titel);
+    });
+  }
+  // Neue Rezepte
+  const dynRezepte = Object.keys(state).filter(k => k.startsWith('dyn_rezept_') && state[k]?.titel);
+  dynRezepte.forEach(k => {
+    const d = state[k];
+    lines.push('🍽️ Neues Rezept: ' + d.titel + (d.koch ? ' (Koch: ' + d.koch + ')' : ''));
+    if (d.zutaten?.length) lines.push('   Zutaten: ' + d.zutaten.map(z => z.name || z).join(', '));
+  });
+  // Dynamische Artikel
+  const dynItems = Object.keys(state).filter(k => k.startsWith('dyn_') && !k.startsWith('dyn_rezept_') && state[k]?.name);
+  dynItems.forEach(k => {
+    const d = state[k];
+    lines.push('➕ Neuer Artikel: ' + d.name + (d.menge ? ' – ' + d.menge : '') + (d.kategorie ? ' [' + d.kategorie + ']' : ''));
+  });
+  // Gelöschte Items
+  const deleted = Object.keys(state).filter(k => k.startsWith('del_') && state[k]);
+  if (deleted.length) lines.push('🗑 ' + deleted.length + ' Item(s) gelöscht');
+  // Abgehakte
+  const checked = Object.keys(state).filter(k => state[k] === true && !k.startsWith('rezept_') && !k.startsWith('del_') && !k.startsWith('dyn_') && !k.startsWith('static_') && !k.startsWith('reserviert_'));
+  if (checked.length) lines.push('✓ ' + checked.length + ' Item(s) abgehakt');
+
+  return lines.length ? lines.join('\n') : 'Keine Änderungen';
+}
 window.onload = async function() {
   // State aus GitHub laden (Vorrang über lokalen State)
   const remoteState = await loadStateFromGitHub();
   if (remoteState && Object.keys(remoteState).length > 0) {
-    // Merge statt Überschreiben: lokal Gewähltes/Editiertes hat Vorrang,
-    // damit ein veralteter/leerer Remote-Stand NIE lokale Eingaben löscht.
-    const localState = getState();
-    const merged = Object.assign({}, remoteState, localState);
-    localStorage.setItem('smutje_' + LIST_ID, JSON.stringify(merged));
-    syncStateToProxy(merged); // Remote an den gemergten Stand angleichen
+    localStorage.setItem('smutje_' + LIST_ID, JSON.stringify(remoteState));
   }
   const state = getState();
   restoreDynamicItems(state);
   restoreReservierungen(state);
-  enhanceAllEinkaufItems();
 
   // Statische Rezepte: Edits und Löschungen wiederherstellen
   Object.keys(state).forEach(k => {
@@ -1562,6 +1508,15 @@ window.onload = async function() {
     }
   });
   updateProgress();
+  // Sync-Status anzeigen
+  const savedTs = state['_saved'];
+  if (savedTs) {
+    const el = document.getElementById('syncStatus');
+    if (el) {
+      const d = new Date(savedTs);
+      el.textContent = 'Letzter Sync: ' + d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
+    }
+  }
 };
 </script>
 </body>
