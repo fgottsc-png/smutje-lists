@@ -949,22 +949,89 @@ function showTab(name, el) {
   if (el) el.classList.add('active');
 }
 
+function restoreDynamicItems(state) {
+  // Mitbringen
+  Object.keys(state).filter(k => k.startsWith('dyn_') && state[k] && state[k].type === 'mitbringen').forEach(k => {
+    const d = state[k]; const id = k.replace('dyn_', '');
+    if (document.getElementById('item_' + id)) return;
+    let sec = document.getElementById('section-mitbringen-extra');
+    if (!sec) {
+      sec = document.createElement('div'); sec.className = 'section'; sec.id = 'section-mitbringen-extra';
+      sec.innerHTML = '<div class="section-header hdr-blue">\u{1F9F3} Zus\u00e4tzlich mitbringen<span class="badge">0/0</span></div>';
+      document.getElementById('mitbringen-extra').appendChild(sec);
+    }
+    const el = document.createElement('div'); el.className = 'item'; el.id = 'item_' + id;
+    el.innerHTML = '<div class="checkbox" onclick="toggleItem(\'' + id + '\')"></div><div class="item-info" onclick="toggleItem(\'' + id + '\')"><div class="item-name">' + d.name + '</div><div class="item-meta">' + (d.menge ? d.menge + ' \u00b7 ' : '') + '<span class="mitbringer">\u{1F9F3} ' + d.person + '</span></div></div><button class="delete-btn" onclick="deleteItem(\'' + id + '\', event)" title="Entfernen">\u{1F5D1}</button>';
+    sec.appendChild(el);
+  });
+
+  // Einkauf-Artikel
+  Object.keys(state).filter(k => k.startsWith('dyn_') && state[k] && state[k].kategorie).forEach(k => {
+    const d = state[k]; const id = k.replace('dyn_', '');
+    if (document.getElementById('item_' + id)) return;
+    const secId = 'section-' + d.kategorie.replace(/[^a-zA-Z0-9]/g, '_');
+    let sec = document.getElementById(secId);
+    if (!sec) {
+      const panel = document.getElementById('tab-einkauf');
+      sec = document.createElement('div'); sec.className = 'section'; sec.id = secId;
+      sec.innerHTML = '<div class="section-header hdr-blue">' + d.kategorie + '<span class="badge">0/0</span></div>';
+      panel.insertBefore(sec, panel.querySelector('.reset-btn'));
+    }
+    const meta = [d.menge, d.mitbringer ? '<span class="mitbringer">\u{1F9F3} ' + d.mitbringer + '</span>' : ''].filter(Boolean).join(' \u00b7 ');
+    const el = document.createElement('div'); el.className = 'item'; el.id = 'item_' + id;
+    el.innerHTML = '<div class="checkbox" onclick="toggleItem(\'' + id + '\')"></div><div class="item-info" onclick="toggleItem(\'' + id + '\')"><div class="item-name">' + d.name + '</div>' + (meta ? '<div class="item-meta">' + meta + '</div>' : '') + '</div><button class="delete-btn" onclick="deleteItem(\'' + id + '\', event)" title="Entfernen">\u{1F5D1}</button>';
+    sec.appendChild(el);
+  });
+
+  // Rezepte
+  Object.keys(state).filter(k => k.startsWith('dyn_rezept_') && state[k] && state[k].titel).forEach(k => {
+    const d = state[k]; const rid = k.replace('dyn_rezept_', '');
+    if (document.getElementById('rezept_' + rid)) return;
+    const eingeplant = !!state['rezept_eingeplant_' + rid];
+    let zh = '<div class="recipe-ingredients">';
+    d.zutaten.forEach(z => { zh += '<div' + (z.isFresh ? ' class="fresh"' : '') + '>' + (z.isFresh ? '\u{1F96C} ' : '\u{1F6D2} ') + z.name + (z.menge ? ' \u2013 ' + z.menge : '') + '</div>'; });
+    zh += '</div>';
+    const btnTxt = eingeplant ? '\u2713 Eingeplant \u2013 antippen zum Deaktivieren' : '\u{1F6D2} Jetzt einplanen \u2013 Zutaten zur Einkaufsliste hinzuf\u00fcgen';
+    const card = document.createElement('div'); card.className = 'info-card'; card.id = 'rezept_' + rid;
+    card.innerHTML = '<div class="recipe-card"><div class="recipe-title">\u{1F37D}\uFE0F ' + d.titel + '</div><div class="recipe-meta">' + (d.koch ? 'Koch: <span class="recipe-cook">' + d.koch + '</span>' : '') + (d.quelle ? '  \u00b7  Quelle: ' + d.quelle : '') + '</div>' + (d.anpassung ? '<div class="item-meta" style="margin-top:4px;color:#e85d04;">\u26a0\uFE0F ' + d.anpassung + '</div>' : '') + zh + '<button class="btn-einplanen' + (eingeplant ? ' eingeplant' : '') + '" id="btn_einplanen_' + rid + '" onclick="rezeptEinplanenDyn(\'' + rid + '\', this)">' + btnTxt + '</button><div class="einplanen-hinweis">\u26a0\uFE0F Nur dr\u00fccken wenn das Gericht in den n\u00e4chsten 48h gekocht wird</div></div>';
+    document.getElementById('rezepte-extra').appendChild(card);
+
+    // Zutaten-Items
+    let fs = document.getElementById('section-rezept-fresh-dyn');
+    if (!fs) {
+      fs = document.createElement('div'); fs.className = 'section'; fs.id = 'section-rezept-fresh-dyn';
+      fs.innerHTML = '<div class="section-header hdr-orange">\u{1F305} Frisches \u26a0\uFE0F \u2013 Rezept-Zutaten<span class="badge">0/0</span></div>';
+      const panel = document.getElementById('tab-einkauf');
+      panel.insertBefore(fs, panel.querySelector('.reset-btn'));
+    }
+    d.zutaten.forEach((z, i) => {
+      const fid = rid + '_f' + i;
+      if (document.getElementById('item_' + fid)) return;
+      const fi = document.createElement('div'); fi.className = 'item rezept-fresh-' + rid; fi.id = 'item_' + fid;
+      fi.style.display = eingeplant ? 'flex' : 'none';
+      fi.style.background = z.isFresh ? '#fff8e1' : '#f8f8ff';
+      fi.innerHTML = '<div class="checkbox" onclick="toggleItem(\'' + fid + '\')"></div><div class="item-info" onclick="toggleItem(\'' + fid + '\')"><div class="item-name">' + z.name + (z.menge ? ' \u2013 ' + z.menge : '') + '</div><div class="item-meta"><span class="fuer-rezept">\u{1F37D}\uFE0F f\u00fcr: ' + d.titel + '</span>' + (z.isFresh ? ' \u00b7 <span style="color:#e85d04;font-weight:700;">\u26a0\uFE0F Frischware</span>' : '') + '</div></div><button class="delete-btn" onclick="deleteItem(\'' + fid + '\', event)" title="Entfernen">\u{1F5D1}</button>';
+      fs.appendChild(fi);
+    });
+  });
+}
+
 window.onload = function() {
   const state = getState();
+  restoreDynamicItems(state);
   Object.keys(state).forEach(id => {
     if (id.startsWith('del_') && state[id]) {
-      const realId = id.replace('del_', '');
-      const el = document.getElementById('item_' + realId);
+      const el = document.getElementById('item_' + id.replace('del_', ''));
       if (el) el.classList.add('deleted');
     }
-    if ((id.startsWith('e_') || id.startsWith('m_')) && state[id] === true) {
+    if (state[id] === true && !id.startsWith('del_') && !id.startsWith('dyn_') && !id.startsWith('rezept_')) {
       const el = document.getElementById('item_' + id);
       if (el && !el.classList.contains('deleted')) el.classList.add('checked');
     }
-    if (id.startsWith('rezept_eingeplant_') && state[id]) {
+    if (id.startsWith('rezept_eingeplant_') && state[id] === true) {
       const rid = id.replace('rezept_eingeplant_', '');
       const btn = document.getElementById('btn_einplanen_' + rid);
-      if (btn) { btn.classList.add('eingeplant'); btn.textContent = '✓ Eingeplant – frische Zutaten auf der Liste'; }
+      if (btn) { btn.classList.add('eingeplant'); btn.textContent = '\u2713 Eingeplant \u2013 antippen zum Deaktivieren'; }
       document.querySelectorAll('.rezept-fresh-' + rid).forEach(item => { item.style.display = 'flex'; });
     }
   });
