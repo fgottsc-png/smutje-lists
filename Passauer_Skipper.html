@@ -814,24 +814,30 @@ function buildVorschau() {
 }
 
 // Sammle alle Artikelnamen die bereits auf der Einkaufsliste stehen (sichtbar, nicht gelöscht)
-function getExistingItemNames() {
+function getExistingItemNames(excludeRid) {
   const names = new Set();
   document.querySelectorAll('.item:not(.deleted) .item-name').forEach(el => {
-    names.add(el.textContent.trim().toLowerCase());
+    const item = el.closest('.item');
+    // Rezept-Frisch-Items dieser Rezept-ID ausschliessen (wären sonst Duplikate von sich selbst)
+    if (excludeRid && item && item.classList.contains('rezept-fresh-' + excludeRid)) return;
+    // Unsichtbare Items (noch nicht eingeplant) ausschliessen
+    if (item && item.style.display === 'none') return;
+    names.add(el.textContent.split('–')[0].trim().toLowerCase());
   });
   return names;
 }
 
 // Prüfe ob eine Zutat bereits einer anderen Rezept-ID zugewiesen ist
-function isZutatAlreadyAssigned(zutatName) {
+function isZutatAlreadyAssigned(zutatName, excludeRid) {
   const state = getState();
   for (const key of Object.keys(state)) {
     if (key.startsWith('rezept_eingeplant_') && state[key]) {
       const rid = key.replace('rezept_eingeplant_', '');
+      if (rid === excludeRid) continue; // eigene Rezept-ID überspringen
       const rdata = state['dyn_rezept_' + rid];
       if (rdata && rdata.zutaten) {
         for (const z of rdata.zutaten) {
-          if (z.name.toLowerCase() === zutatName.toLowerCase()) return true;
+          if (normalizeZutat(z.name || z) === normalizeZutat(zutatName)) return true;
         }
       }
     }
@@ -952,13 +958,12 @@ function rezeptEinplanenDyn(rid, btn) {
     const nameEl = item.querySelector('.item-name');
     const rawName = nameEl ? nameEl.textContent.split('–')[0].trim() : '';
 
-    // Suche auf bestehender Liste
-    const found = findItemOnList(rawName);
+    // Suche auf bestehender sichtbarer Liste (eigene Rezept-Items ausschliessen)
+    const found = findItemOnList(rawName, rid);
     if (found.length > 0) {
-      // Als reserviert markieren statt duplizieren
       found.forEach(f => markAsReserviert(f.id, titel, rid));
       reserviert++;
-    } else if (isZutatAlreadyAssigned(rawName)) {
+    } else if (isZutatAlreadyAssigned(rawName, rid)) {
       skipped++;
     } else {
       item.style.display = 'flex';
@@ -1039,10 +1044,13 @@ function normalizeZutat(name) {
 
 // Suche alle sichtbaren, nicht-gelöschten Items auf der Einkaufsliste
 // Gibt {id, nameEl, metaEl, itemEl} zurück wenn Zutatname matcht
-function findItemOnList(zutatName) {
+function findItemOnList(zutatName, excludeRid) {
   const needle = normalizeZutat(zutatName);
   const results = [];
   document.querySelectorAll('#tab-einkauf .item:not(.deleted)').forEach(item => {
+    // Eigene Rezept-Items und unsichtbare Items ausschliessen
+    if (item.style.display === 'none') return;
+    if (excludeRid && item.classList.contains('rezept-fresh-' + excludeRid)) return;
     const nameEl = item.querySelector('.item-name');
     if (!nameEl) return;
     const haystack = normalizeZutat(nameEl.textContent);
