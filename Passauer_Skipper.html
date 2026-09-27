@@ -208,24 +208,6 @@
   </div>
 </div>
 
-<!-- MODAL: Mitbringen hinzufügen -->
-<div class="modal-overlay" id="modalMitbringen">
-  <div class="modal">
-    <h2>Mitbringen hinzufügen</h2>
-    <label>Was wird mitgebracht? *</label>
-    <input type="text" id="newMitbringenName" placeholder="z.B. Rum, Gewürze, Töpfe…">
-    <label>Menge</label>
-    <input type="text" id="newMitbringenMenge" placeholder="z.B. 1 Flasche, 500 g">
-    <label>Von wem? *</label>
-    <input type="text" id="newMitbringenPerson" placeholder="z.B. Florian">
-    <div class="modal-actions">
-      <button class="modal-btn-cancel" onclick="closeModal('modalMitbringen')">Abbrechen</button>
-      <button class="modal-btn-primary" onclick="saveMitbringen()">Hinzufügen</button>
-    </div>
-  </div>
-</div>
-
-
 <!-- MODAL: Rezept bearbeiten -->
 <div class="modal-overlay" id="modalRezeptEdit">
   <div class="modal">
@@ -310,7 +292,6 @@
 
 <div class="tabs">
   <div class="tab active" onclick="showTab('einkauf', this)">🛒 Einkauf</div>
-  <div class="tab" onclick="showTab('mitbringen', this)">🧳 Mitbringen</div>
   <div class="tab" onclick="showTab('rezepte', this)">🍽️ Rezepte</div>
   <div class="tab" onclick="showTab('crew', this)">👥 Crew</div>
 </div>
@@ -512,17 +493,6 @@
   <button class="delete-btn" onclick="deleteItem('e_43', event)" title="Entfernen">🗑</button>
 </div></div>
 <button class="reset-btn" onclick="resetAll()">↺ Alle Häkchen zurücksetzen</button>
-</div>
-
-<!-- TAB: MITBRINGEN -->
-<div class="panel" id="tab-mitbringen">
-<div class="section"><div class="section-header hdr-blue">🧳 Wird mitgebracht<span class="badge">0/1</span></div><div class="item" id="item_m_0">
-  <div class="checkbox" onclick="toggleItem('m_0')"></div>
-  <div class="item-info" onclick="toggleItem('m_0')"><div class="item-name">Rum</div><div class="item-meta">3 Flaschen · <span class="mitbringer">🧳 Florian</span></div></div>
-  <button class="delete-btn" onclick="deleteItem('m_0', event)" title="Entfernen">🗑</button>
-</div></div>
-<button class="add-mitbringen-btn" onclick="openModal('modalMitbringen')">+ Mitbringen hinzufügen</button>
-<div id="mitbringen-extra"></div>
 </div>
 
 <!-- TAB: REZEPTE -->
@@ -927,46 +897,6 @@ function saveArtikel() {
 }
 
 // Mitbringen
-function saveMitbringen() {
-  const name = document.getElementById('newMitbringenName').value.trim();
-  const menge = document.getElementById('newMitbringenMenge').value.trim();
-  const person = document.getElementById('newMitbringenPerson').value.trim();
-  if (!name || !person) { alert('Bitte Name und Person angeben.'); return; }
-  const id = 'dyn_m_' + (dynamicItemCounter++);
-
-  const container = document.getElementById('mitbringen-extra');
-  let section = document.getElementById('section-mitbringen-extra');
-  if (!section) {
-    section = document.createElement('div');
-    section.className = 'section';
-    section.id = 'section-mitbringen-extra';
-    section.innerHTML = `<div class="section-header hdr-blue">🧳 Zusätzlich mitbringen<span class="badge">0/0</span></div>`;
-    container.appendChild(section);
-  }
-
-  const item = document.createElement('div');
-  item.className = 'item';
-  item.id = 'item_' + id;
-  item.innerHTML = `
-    <div class="checkbox" onclick="toggleItem('${id}')"></div>
-    <div class="item-info" onclick="toggleItem('${id}')">
-      <div class="item-name">${name}</div>
-      <div class="item-meta">${menge ? menge + ' · ' : ''}<span class="mitbringer">🧳 ${person}</span></div>
-    </div>
-    <button class="delete-btn" onclick="deleteItem('${id}', event)" title="Entfernen">🗑</button>`;
-  section.appendChild(item);
-
-  const state = getState();
-  state['dyn_' + id] = { name, menge, person, type: 'mitbringen' };
-  setState(state);
-
-  document.getElementById('newMitbringenName').value = '';
-  document.getElementById('newMitbringenMenge').value = '';
-  document.getElementById('newMitbringenPerson').value = '';
-  closeModal('modalMitbringen');
-  updateProgress();
-}
-
 // REZEPT WIZARD
 let zutaten = [];
 let wCurrentStep = 1;
@@ -1528,21 +1458,6 @@ function deleteRezept(rid) {
 }
 
 function restoreDynamicItems(state) {
-  // Mitbringen
-  Object.keys(state).filter(k => k.startsWith('dyn_') && state[k] && state[k].type === 'mitbringen').forEach(k => {
-    const d = state[k]; const id = k.replace('dyn_', '');
-    if (document.getElementById('item_' + id)) return;
-    let sec = document.getElementById('section-mitbringen-extra');
-    if (!sec) {
-      sec = document.createElement('div'); sec.className = 'section'; sec.id = 'section-mitbringen-extra';
-      sec.innerHTML = '<div class="section-header hdr-blue">\u{1F9F3} Zus\u00e4tzlich mitbringen<span class="badge">0/0</span></div>';
-      document.getElementById('mitbringen-extra').appendChild(sec);
-    }
-    const el = document.createElement('div'); el.className = 'item'; el.id = 'item_' + id;
-    el.innerHTML = '<div class="checkbox" onclick="toggleItem(\'' + id + '\')"></div><div class="item-info" onclick="toggleItem(\'' + id + '\')"><div class="item-name">' + d.name + '</div><div class="item-meta">' + (d.menge ? d.menge + ' \u00b7 ' : '') + '<span class="mitbringer">\u{1F9F3} ' + d.person + '</span></div></div><button class="delete-btn" onclick="deleteItem(\'' + id + '\', event)" title="Entfernen">\u{1F5D1}</button>';
-    sec.appendChild(el);
-  });
-
   // Einkauf-Artikel
   Object.keys(state).filter(k => k.startsWith('dyn_') && state[k] && state[k].kategorie).forEach(k => {
     const d = state[k]; const id = k.replace('dyn_', '');
