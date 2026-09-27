@@ -205,7 +205,9 @@
     <input type="text" id="editRzAnpassung" placeholder="z.B. Fleisch durch Tofu ersetzen">
     <label>Quelle / Kochbuch</label>
     <input type="text" id="editRzQuelle" placeholder="z.B. Smutje Kochbuch #67">
-    <p class="modal-hint" style="margin-top:10px;">⚠️ Zutaten können nur bei nicht-eingeplanten Rezepten bearbeitet werden. Zum Bearbeiten der Zutaten: Rezept zuerst deaktivieren.</p>
+    <label>Zutaten <span style="font-weight:400;color:#888;">(eine pro Zeile, 🥬 für Frischware)</span></label>
+    <textarea id="editRzZutaten" rows="6" placeholder="Hühnchenbrust 1,2 kg 🥬&#10;Penne 500 g&#10;Curry&#10;Sahne laktosefrei 🥬" style="width:100%;font-family:'Open Sans',sans-serif;font-size:0.9em;border:1.5px solid #ddd;border-radius:8px;padding:8px;resize:vertical;"></textarea>
+    <p class="modal-hint">🥬 = Frischware (erst kurz vor Abfahrt kaufen). Mengen direkt in die Zeile schreiben.</p>
     <div class="modal-actions">
       <button class="modal-btn-cancel" onclick="closeModal('modalRezeptEdit')">Abbrechen</button>
       <button class="modal-btn-primary" onclick="saveRezeptEdit()">Speichern</button>
@@ -1118,6 +1120,27 @@ function restoreReservierungen(state) {
 }
 
 
+
+function zutatenToText(zutaten) {
+  if (!zutaten || !zutaten.length) return '';
+  return zutaten.map(z => {
+    let line = z.name || z;
+    if (z.menge) line += ' ' + z.menge;
+    if (z.isFresh) line += ' 🥬';
+    return line;
+  }).join('\n');
+}
+
+function textToZutaten(text) {
+  return text.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+    const isFresh = line.includes('🥬');
+    const clean = line.replace('🥬', '').trim();
+    // Letztes Wort als Menge wenn es Zahl/Einheit enthält
+    const parts = clean.match(/^(.+?)\s+(\d[\d.,]*\s*(?:kg|g|ml|l|Stück|Becher|Dose|Flasche|Tüte|Knollen?|Packung|Rollen?|Glas|Gläser)?)\s*$/i);
+    if (parts) return { name: parts[1].trim(), menge: parts[2].trim(), isFresh };
+    return { name: clean, menge: '', isFresh };
+  });
+}
 // Edit/Delete für statische (Generator-erzeugte) Rezepte
 function openStaticRezeptEdit(rid) {
   const state = getState();
@@ -1135,6 +1158,13 @@ function openStaticRezeptEdit(rid) {
   document.getElementById('editRzKoch').value = saved.koch || data.koch || '';
   document.getElementById('editRzAnpassung').value = saved.anpassung || data.anpassung || '';
   document.getElementById('editRzQuelle').value = saved.quelle || data.quelle || '';
+  // Zutaten aus DOM lesen (recipe-ingredients)
+  const zutatenEl = document.querySelectorAll('#rezept_' + rid + ' .recipe-ingredients div');
+  let zutatenText = saved.zutatenText || '';
+  if (!zutatenText && zutatenEl.length) {
+    zutatenText = Array.from(zutatenEl).map(el => el.textContent.replace(/^[🛒🥬]\s*/, '').trim()).join('\n');
+  }
+  document.getElementById('editRzZutaten').value = zutatenText;
   openModal('modalRezeptEdit');
 }
 
@@ -1171,6 +1201,7 @@ function openRezeptEdit(rid) {
   document.getElementById('editRzKoch').value = d.koch || domKoch;
   document.getElementById('editRzAnpassung').value = d.anpassung || domAnpassung;
   document.getElementById('editRzQuelle').value = d.quelle || '';
+  document.getElementById('editRzZutaten').value = zutatenToText(d.zutaten || []);
   openModal('modalRezeptEdit');
 }
 
@@ -1188,7 +1219,7 @@ function saveRezeptEdit() {
   if (rawId.startsWith('static_')) {
     // Statisches Rezept
     const rid = rawId.replace('static_', '');
-    state['static_rezept_edit_' + rid] = { titel, koch, anpassung, quelle };
+    state['static_rezept_edit_' + rid] = { titel, koch, anpassung, quelle, zutatenText: document.getElementById('editRzZutaten').value };
     setState(state);
     cardId = rid;
   } else {
@@ -1196,6 +1227,7 @@ function saveRezeptEdit() {
     if (!state['dyn_rezept_' + rawId]) state['dyn_rezept_' + rawId] = { zutaten: [] };
     const d = state['dyn_rezept_' + rawId];
     d.titel = titel; d.koch = koch; d.anpassung = anpassung; d.quelle = quelle;
+    d.zutaten = textToZutaten(document.getElementById('editRzZutaten').value);
     setState(state);
     cardId = rawId;
   }
@@ -1203,14 +1235,23 @@ function saveRezeptEdit() {
   // DOM updaten
   const card = document.getElementById('rezept_' + cardId);
   if (card) {
-    card.querySelector('.recipe-title').textContent = '🍽️ ' + titel;
-    const meta = card.querySelector('.recipe-meta');
+    const rc = card.querySelector('.recipe-card');
+    if (rc.querySelector('.recipe-title')) rc.querySelector('.recipe-title').textContent = '🍽️ ' + titel;
+    const meta = rc.querySelector('.recipe-meta');
     if (meta) meta.innerHTML = (koch ? 'Koch: <span class="recipe-cook">' + koch + '</span>' : '') + (quelle ? '  ·  Quelle: ' + quelle : '');
-    let anpEl = card.querySelector('.item-meta');
+    let anpEl = rc.querySelector('.item-meta');
     if (anpassung) {
-      if (!anpEl) { anpEl = document.createElement('div'); anpEl.className = 'item-meta'; anpEl.style.cssText = 'margin-top:4px;color:#e85d04;'; card.querySelector('.recipe-card').insertBefore(anpEl, card.querySelector('.recipe-ingredients') || card.querySelector('.btn-einplanen')); }
+      if (!anpEl) { anpEl = document.createElement('div'); anpEl.className = 'item-meta'; anpEl.style.cssText = 'margin-top:4px;color:#e85d04;'; rc.insertBefore(anpEl, rc.querySelector('.recipe-ingredients') || rc.querySelector('.btn-einplanen')); }
       anpEl.textContent = '⚠️ ' + anpassung;
     } else if (anpEl) { anpEl.textContent = ''; }
+    // Zutaten-HTML neu aufbauen
+    const zutatenText = document.getElementById('editRzZutaten').value;
+    if (zutatenText) {
+      const newZutaten = textToZutaten(zutatenText);
+      let ingEl = rc.querySelector('.recipe-ingredients');
+      if (!ingEl) { ingEl = document.createElement('div'); ingEl.className = 'recipe-ingredients'; rc.insertBefore(ingEl, rc.querySelector('.btn-einplanen')); }
+      ingEl.innerHTML = newZutaten.map(z => `<div${z.isFresh ? ' class="fresh"' : ''}>${z.isFresh ? '🥬 ' : '🛒 '}${z.name}${z.menge ? ' – ' + z.menge : ''}</div>`).join('');
+    }
   }
   closeModal('modalRezeptEdit');
 }
