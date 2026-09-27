@@ -92,6 +92,11 @@
   .btn-einplanen.eingeplant { background: #2d6a4f; color: white; cursor: default; }
   .einplanen-hinweis { font-size: 0.75em; color: #e85d04; margin-top: 6px; font-style: italic; }
 
+
+  /* REZEPT AKTIONEN */
+  .recipe-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .btn-edit-rezept { background: #f0f4f8; color: #1a3a5c; border: none; border-radius: 8px; padding: 7px 14px; font-size: 0.78em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; }
+  .btn-delete-rezept { background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; padding: 7px 14px; font-size: 0.78em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; }
   /* ADD REZEPT BUTTON (Rezepte-Tab) */
   .add-rezept-btn { display: flex; align-items: center; gap: 8px; background: #1a3a5c; color: #f9bf33; border: none; border-radius: 10px; padding: 12px 18px; font-size: 0.9em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; margin: 0 0 12px; width: 100%; justify-content: center; }
 
@@ -179,6 +184,28 @@
     <div class="modal-actions">
       <button class="modal-btn-cancel" onclick="closeModal('modalMitbringen')">Abbrechen</button>
       <button class="modal-btn-primary" onclick="saveMitbringen()">Hinzufügen</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL: Rezept bearbeiten -->
+<div class="modal-overlay" id="modalRezeptEdit">
+  <div class="modal">
+    <h2>✏️ Rezept bearbeiten</h2>
+    <input type="hidden" id="editRezeptId">
+    <label>Gerichtname *</label>
+    <input type="text" id="editRzTitel" placeholder="z.B. Pasta Napoli…">
+    <label>Koch / Köchin</label>
+    <input type="text" id="editRzKoch" placeholder="Wer kocht das Gericht?">
+    <label>Vegetarische/vegane Anpassung</label>
+    <input type="text" id="editRzAnpassung" placeholder="z.B. Fleisch durch Tofu ersetzen">
+    <label>Quelle / Kochbuch</label>
+    <input type="text" id="editRzQuelle" placeholder="z.B. Smutje Kochbuch #67">
+    <p class="modal-hint" style="margin-top:10px;">⚠️ Zutaten können nur bei nicht-eingeplanten Rezepten bearbeitet werden. Zum Bearbeiten der Zutaten: Rezept zuerst deaktivieren.</p>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal('modalRezeptEdit')">Abbrechen</button>
+      <button class="modal-btn-primary" onclick="saveRezeptEdit()">Speichern</button>
     </div>
   </div>
 </div>
@@ -947,6 +974,66 @@ function showTab(name, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   if (el) el.classList.add('active');
+}
+
+
+function openRezeptEdit(rid) {
+  const state = getState();
+  const d = state['dyn_rezept_' + rid];
+  if (!d) return;
+  document.getElementById('editRezeptId').value = rid;
+  document.getElementById('editRzTitel').value = d.titel || '';
+  document.getElementById('editRzKoch').value = d.koch || '';
+  document.getElementById('editRzAnpassung').value = d.anpassung || '';
+  document.getElementById('editRzQuelle').value = d.quelle || '';
+  openModal('modalRezeptEdit');
+}
+
+function saveRezeptEdit() {
+  const rid = document.getElementById('editRezeptId').value;
+  const titel = document.getElementById('editRzTitel').value.trim();
+  if (!titel) { alert('Bitte einen Gerichenamen eingeben.'); return; }
+  const state = getState();
+  const d = state['dyn_rezept_' + rid];
+  if (!d) return;
+  d.titel = titel;
+  d.koch = document.getElementById('editRzKoch').value.trim();
+  d.anpassung = document.getElementById('editRzAnpassung').value.trim();
+  d.quelle = document.getElementById('editRzQuelle').value.trim();
+  setState(state);
+
+  // Karte im DOM aktualisieren
+  const card = document.getElementById('rezept_' + rid);
+  if (card) {
+    card.querySelector('.recipe-title').textContent = '🍽️ ' + titel;
+    const meta = card.querySelector('.recipe-meta');
+    if (meta) meta.innerHTML = (d.koch ? 'Koch: <span class="recipe-cook">' + d.koch + '</span>' : '') + (d.quelle ? '  ·  Quelle: ' + d.quelle : '');
+    const anpEl = card.querySelector('.item-meta');
+    if (anpEl && d.anpassung) anpEl.textContent = '⚠️ ' + d.anpassung;
+  }
+  closeModal('modalRezeptEdit');
+}
+
+function deleteRezept(rid) {
+  const state = getState();
+  if (state['rezept_eingeplant_' + rid]) {
+    alert('Bitte das Rezept zuerst deaktivieren, bevor es gelöscht werden kann.');
+    return;
+  }
+  if (!confirm('Rezept wirklich löschen?')) return;
+
+  // Zutaten-Items aus DOM entfernen
+  document.querySelectorAll('.rezept-fresh-' + rid).forEach(el => el.remove());
+
+  // Karte aus DOM entfernen
+  const card = document.getElementById('rezept_' + rid);
+  if (card) card.remove();
+
+  // Aus State entfernen
+  delete state['dyn_rezept_' + rid];
+  delete state['rezept_eingeplant_' + rid];
+  setState(state);
+  updateProgress();
 }
 
 function restoreDynamicItems(state) {
