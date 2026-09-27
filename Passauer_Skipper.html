@@ -91,9 +91,27 @@
 
   footer { text-align: center; padding: 20px 16px; font-size: 0.75em; color: #1a3a5c; opacity: 0.6; }
   .reset-btn { display: block; margin: 0 auto 16px; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; padding: 8px 20px; font-size: 0.85em; cursor: pointer; font-family: 'Open Sans', sans-serif; font-weight: 600; }
+  /* SPLASH SCREEN */
+  #splash { position: fixed; inset: 0; background: #f2c60d; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; padding: 32px 24px; text-align: center; }
+  #splash img.splash-logo { width: 160px; height: 160px; object-fit: contain; margin-bottom: 28px; }
+  #splash .splash-presented { font-size: 0.95em; color: #1a3a5c; opacity: 0.75; margin-bottom: 6px; font-family: 'Open Sans', sans-serif; }
+  #splash .splash-sponsor { font-family: 'Lobster', cursive; font-size: 1.6em; color: #1a3a5c; line-height: 1.3; margin-bottom: 32px; }
+  #splash .splash-sponsor a { color: #1a3a5c; text-decoration: underline; text-decoration-color: rgba(26,58,92,0.4); }
+  #splash .splash-btn { background: #1a3a5c; color: #f2c60d; font-family: 'Open Sans', sans-serif; font-weight: 700; font-size: 1em; border: none; border-radius: 12px; padding: 14px 36px; cursor: pointer; letter-spacing: 0.05em; box-shadow: 0 4px 12px rgba(26,58,92,0.25); transition: background 0.2s; }
+  #splash .splash-btn:hover { background: #0f2540; }
 </style>
 </head>
 <body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <img class="splash-logo" src="https://fgottsc-png.github.io/smutje-lists/dersmutje.png" alt="Smutje Logo">
+  <div class="splash-presented">Smutje wird präsentiert von</div>
+  <div class="splash-sponsor">
+    <a href="https://www.marinepool.com" target="_blank" rel="noopener">MARINEPOOL<br>Fashion für Segler</a>
+  </div>
+  <button class="splash-btn" onclick="document.getElementById('splash').style.display='none'">ZUR EINKAUFSLISTE</button>
+</div>
 
 <header>
   <img class="logo" src="https://fgottsc-png.github.io/smutje-lists/dersmutje.png" alt="Smutje Logo">
@@ -367,7 +385,7 @@
 <footer>Erstellt von Smutje · seebaertv ⚓ · Stand: 27.09.2026</footer>
 
 <script>
-const LIST_ID = 'edfc065a';
+const LIST_ID = 'ddb5185a';
 const TOTAL_EINKAUF = 46;
 const TOTAL_MITBRINGEN = 1;
 
