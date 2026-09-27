@@ -492,7 +492,7 @@
 <!-- TAB: REZEPTE -->
 <div class="panel" id="tab-rezepte">
 <button class="add-rezept-btn" onclick="openRezeptWizard()">+ Neues Rezept hinzufügen</button>
-<div class="info-card" id="rezept_r0">
+<div class="info-card" id="rezept_r0" data-rezept='{"titel": "Chicken Curry mit Pasta", "koch": "Florian", "anpassung": "Vegetarier: Hähnchen durch Kichererbsen ersetzen, Sahne durch Kokosmilch", "quelle": "Florian"}'>
   <div class="recipe-card">
     <div class="recipe-title">🍽️ Chicken Curry mit Pasta</div>
     <div class="recipe-meta">Koch: <span class="recipe-cook">Florian</span>  ·  Quelle: Florian</div>
@@ -503,7 +503,7 @@
 </button>
 <div class="einplanen-hinweis">⚠️ Nur drücken wenn das Gericht in den nächsten 48h gekocht wird</div>
     <div class="recipe-actions">
-      <button class="btn-edit-rezept" onclick="openStaticRezeptEdit('r0', {"titel": "Chicken Curry mit Pasta", "koch": "Florian", "anpassung": "Vegetarier: Hähnchen durch Kichererbsen ersetzen, Sahne durch Kokosmilch", "quelle": "Florian"})">✏️ Bearbeiten</button>
+      <button class="btn-edit-rezept" onclick="openStaticRezeptEdit('r0')">✏️ Bearbeiten</button>
       <button class="btn-delete-rezept" onclick="deleteStaticRezept('r0')">🗑 Löschen</button>
     </div>
   </div>
@@ -867,6 +867,10 @@ function saveRezept() {
       ${anpassung ? `<div class="item-meta" style="margin-top:4px;color:#e85d04;">⚠️ ${anpassung}</div>` : ''}
       ${zutatenHtml}
       ${einplanenHtml}
+      <div class="recipe-actions">
+        <button class="btn-edit-rezept" onclick="openRezeptEdit('${rid}')">✏️ Bearbeiten</button>
+        <button class="btn-delete-rezept" onclick="deleteRezept('${rid}')">🗑 Löschen</button>
+      </div>
     </div>`;
 
   document.getElementById('rezepte-extra').appendChild(card);
@@ -1115,13 +1119,16 @@ function restoreReservierungen(state) {
 
 
 // Edit/Delete für statische (Generator-erzeugte) Rezepte
-function openStaticRezeptEdit(rid, data) {
+function openStaticRezeptEdit(rid) {
   const state = getState();
   if (state['rezept_eingeplant_' + rid]) {
     alert('Bitte das Rezept zuerst deaktivieren, bevor es bearbeitet werden kann.');
     return;
   }
-  // Merge: state-Override falls vorhanden
+  // Daten aus data-Attribut lesen
+  const cardEl = document.getElementById('rezept_' + rid);
+  const data = cardEl ? JSON.parse(cardEl.getAttribute('data-rezept') || '{}') : {};
+  // State-Override falls bereits bearbeitet
   const saved = state['static_rezept_edit_' + rid] || {};
   document.getElementById('editRezeptId').value = 'static_' + rid;
   document.getElementById('editRzTitel').value = saved.titel || data.titel || '';
@@ -1266,7 +1273,7 @@ function restoreDynamicItems(state) {
     zh += '</div>';
     const btnTxt = eingeplant ? '\u2713 Eingeplant \u2013 antippen zum Deaktivieren' : '\u{1F6D2} Jetzt einplanen \u2013 Zutaten zur Einkaufsliste hinzuf\u00fcgen';
     const card = document.createElement('div'); card.className = 'info-card'; card.id = 'rezept_' + rid;
-    card.innerHTML = '<div class="recipe-card"><div class="recipe-title">\u{1F37D}\uFE0F ' + d.titel + '</div><div class="recipe-meta">' + (d.koch ? 'Koch: <span class="recipe-cook">' + d.koch + '</span>' : '') + (d.quelle ? '  \u00b7  Quelle: ' + d.quelle : '') + '</div>' + (d.anpassung ? '<div class="item-meta" style="margin-top:4px;color:#e85d04;">\u26a0\uFE0F ' + d.anpassung + '</div>' : '') + zh + '<button class="btn-einplanen' + (eingeplant ? ' eingeplant' : '') + '" id="btn_einplanen_' + rid + '" onclick="rezeptEinplanenDyn(\'' + rid + '\', this)">' + btnTxt + '</button><div class="einplanen-hinweis">\u26a0\uFE0F Nur dr\u00fccken wenn das Gericht in den n\u00e4chsten 48h gekocht wird</div></div>';
+    card.innerHTML = '<div class="recipe-card"><div class="recipe-title">\u{1F37D}\uFE0F ' + d.titel + '</div><div class="recipe-meta">' + (d.koch ? 'Koch: <span class="recipe-cook">' + d.koch + '</span>' : '') + (d.quelle ? '  \u00b7  Quelle: ' + d.quelle : '') + '</div>' + (d.anpassung ? '<div class="item-meta" style="margin-top:4px;color:#e85d04;">\u26a0\uFE0F ' + d.anpassung + '</div>' : '') + zh + '<button class="btn-einplanen' + (eingeplant ? ' eingeplant' : '') + '" id="btn_einplanen_' + rid + '" onclick="rezeptEinplanenDyn(\'' + rid + '\', this)">' + btnTxt + '</button><div class="einplanen-hinweis">\u26a0\uFE0F Nur dr\u00fccken wenn das Gericht in den n\u00e4chsten 48h gekocht wird</div><div class="recipe-actions"><button class="btn-edit-rezept" onclick="openRezeptEdit(\'' + rid + '\')">\u270f\uFE0F Bearbeiten</button><button class="btn-delete-rezept" onclick="deleteRezept(\'' + rid + '\')">\u{1F5D1} L\u00f6schen</button></div></div>';
     document.getElementById('rezepte-extra').appendChild(card);
 
     // Zutaten-Items
