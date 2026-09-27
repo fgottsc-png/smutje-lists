@@ -492,17 +492,20 @@
 <!-- TAB: REZEPTE -->
 <div class="panel" id="tab-rezepte">
 <button class="add-rezept-btn" onclick="openRezeptWizard()">+ Neues Rezept hinzufügen</button>
-<div class="info-card">
-  <h3>Abend (nach Wahl)</h3>
+<div class="info-card" id="rezept_r0">
   <div class="recipe-card">
     <div class="recipe-title">🍽️ Chicken Curry mit Pasta</div>
     <div class="recipe-meta">Koch: <span class="recipe-cook">Florian</span>  ·  Quelle: Florian</div>
     <div class="item-meta" style="margin-top:4px;color:#e85d04;">⚠️ Vegetarier: Hähnchen durch Kichererbsen ersetzen, Sahne durch Kokosmilch</div>
     <div class='recipe-ingredients'><div class="fresh">🥬 Hühnchenbrust 1,2 kg 🥬</div><div class="fresh">🥬 Sahne laktosefrei 1 Becher 🥬</div><div>🛒 Paprika 1 Stück (extra) 🥬</div><div>🛒 Penne 1 kg</div><div>🛒 Curry</div><div>🛒 Salz</div><div>🛒 Pfeffer</div></div>
     <button class="btn-einplanen" id="btn_einplanen_r0" onclick="rezeptEinplanen('r0', this)">
-  🛒 Jetzt einplanen – frische Zutaten zur Liste hinzufügen
+  🛒 Jetzt einplanen – Zutaten zur Einkaufsliste hinzufügen
 </button>
 <div class="einplanen-hinweis">⚠️ Nur drücken wenn das Gericht in den nächsten 48h gekocht wird</div>
+    <div class="recipe-actions">
+      <button class="btn-edit-rezept" onclick="openStaticRezeptEdit('r0', {"titel": "Chicken Curry mit Pasta", "koch": "Florian", "anpassung": "Vegetarier: Hähnchen durch Kichererbsen ersetzen, Sahne durch Kokosmilch", "quelle": "Florian"})">✏️ Bearbeiten</button>
+      <button class="btn-delete-rezept" onclick="deleteStaticRezept('r0')">🗑 Löschen</button>
+    </div>
   </div>
 </div>
 <div id="rezepte-extra"></div>
@@ -1110,6 +1113,40 @@ function restoreReservierungen(state) {
   });
 }
 
+
+// Edit/Delete für statische (Generator-erzeugte) Rezepte
+function openStaticRezeptEdit(rid, data) {
+  const state = getState();
+  if (state['rezept_eingeplant_' + rid]) {
+    alert('Bitte das Rezept zuerst deaktivieren, bevor es bearbeitet werden kann.');
+    return;
+  }
+  // Merge: state-Override falls vorhanden
+  const saved = state['static_rezept_edit_' + rid] || {};
+  document.getElementById('editRezeptId').value = 'static_' + rid;
+  document.getElementById('editRzTitel').value = saved.titel || data.titel || '';
+  document.getElementById('editRzKoch').value = saved.koch || data.koch || '';
+  document.getElementById('editRzAnpassung').value = saved.anpassung || data.anpassung || '';
+  document.getElementById('editRzQuelle').value = saved.quelle || data.quelle || '';
+  openModal('modalRezeptEdit');
+}
+
+function deleteStaticRezept(rid) {
+  const state = getState();
+  if (state['rezept_eingeplant_' + rid]) {
+    alert('Bitte das Rezept zuerst deaktivieren, bevor es gelöscht werden kann.');
+    return;
+  }
+  if (!confirm('Rezept wirklich löschen?')) return;
+  document.querySelectorAll('.rezept-fresh-' + rid).forEach(el => el.remove());
+  const card = document.getElementById('rezept_' + rid);
+  if (card) card.remove();
+  state['static_rezept_deleted_' + rid] = true;
+  delete state['rezept_eingeplant_' + rid];
+  setState(state);
+  updateProgress();
+}
+
 function openRezeptEdit(rid) {
   const state = getState();
   const d = state['dyn_rezept_' + rid];
@@ -1123,26 +1160,42 @@ function openRezeptEdit(rid) {
 }
 
 function saveRezeptEdit() {
-  const rid = document.getElementById('editRezeptId').value;
+  let rawId = document.getElementById('editRezeptId').value;
   const titel = document.getElementById('editRzTitel').value.trim();
-  if (!titel) { alert('Bitte einen Gerichenamen eingeben.'); return; }
+  if (!titel) { alert('Bitte einen Gerichtenamen eingeben.'); return; }
+  const koch = document.getElementById('editRzKoch').value.trim();
+  const anpassung = document.getElementById('editRzAnpassung').value.trim();
+  const quelle = document.getElementById('editRzQuelle').value.trim();
   const state = getState();
-  const d = state['dyn_rezept_' + rid];
-  if (!d) return;
-  d.titel = titel;
-  d.koch = document.getElementById('editRzKoch').value.trim();
-  d.anpassung = document.getElementById('editRzAnpassung').value.trim();
-  d.quelle = document.getElementById('editRzQuelle').value.trim();
-  setState(state);
 
-  // Karte im DOM aktualisieren
-  const card = document.getElementById('rezept_' + rid);
+  let domId, cardId;
+
+  if (rawId.startsWith('static_')) {
+    // Statisches Rezept
+    const rid = rawId.replace('static_', '');
+    state['static_rezept_edit_' + rid] = { titel, koch, anpassung, quelle };
+    setState(state);
+    cardId = rid;
+  } else {
+    // Dynamisches Rezept
+    const d = state['dyn_rezept_' + rawId];
+    if (!d) return;
+    d.titel = titel; d.koch = koch; d.anpassung = anpassung; d.quelle = quelle;
+    setState(state);
+    cardId = rawId;
+  }
+
+  // DOM updaten
+  const card = document.getElementById('rezept_' + cardId);
   if (card) {
     card.querySelector('.recipe-title').textContent = '🍽️ ' + titel;
     const meta = card.querySelector('.recipe-meta');
-    if (meta) meta.innerHTML = (d.koch ? 'Koch: <span class="recipe-cook">' + d.koch + '</span>' : '') + (d.quelle ? '  ·  Quelle: ' + d.quelle : '');
-    const anpEl = card.querySelector('.item-meta');
-    if (anpEl && d.anpassung) anpEl.textContent = '⚠️ ' + d.anpassung;
+    if (meta) meta.innerHTML = (koch ? 'Koch: <span class="recipe-cook">' + koch + '</span>' : '') + (quelle ? '  ·  Quelle: ' + quelle : '');
+    let anpEl = card.querySelector('.item-meta');
+    if (anpassung) {
+      if (!anpEl) { anpEl = document.createElement('div'); anpEl.className = 'item-meta'; anpEl.style.cssText = 'margin-top:4px;color:#e85d04;'; card.querySelector('.recipe-card').insertBefore(anpEl, card.querySelector('.recipe-ingredients') || card.querySelector('.btn-einplanen')); }
+      anpEl.textContent = '⚠️ ' + anpassung;
+    } else if (anpEl) { anpEl.textContent = ''; }
   }
   closeModal('modalRezeptEdit');
 }
@@ -1240,6 +1293,25 @@ window.onload = function() {
   const state = getState();
   restoreDynamicItems(state);
   restoreReservierungen(state);
+
+  // Statische Rezepte: Edits und Löschungen wiederherstellen
+  Object.keys(state).forEach(k => {
+    if (k.startsWith('static_rezept_deleted_') && state[k]) {
+      const rid = k.replace('static_rezept_deleted_', '');
+      const card = document.getElementById('rezept_' + rid);
+      if (card) card.remove();
+    }
+    if (k.startsWith('static_rezept_edit_') && state[k]) {
+      const rid = k.replace('static_rezept_edit_', '');
+      const d = state[k];
+      const card = document.getElementById('rezept_' + rid);
+      if (card) {
+        if (d.titel) card.querySelector('.recipe-title').textContent = '🍽️ ' + d.titel;
+        const meta = card.querySelector('.recipe-meta');
+        if (meta) meta.innerHTML = (d.koch ? 'Koch: <span class="recipe-cook">' + d.koch + '</span>' : '') + (d.quelle ? '  ·  Quelle: ' + d.quelle : '');
+      }
+    }
+  });
   Object.keys(state).forEach(id => {
     if (id.startsWith('del_') && state[id]) {
       const el = document.getElementById('item_' + id.replace('del_', ''));
