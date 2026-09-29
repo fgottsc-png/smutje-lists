@@ -248,8 +248,8 @@
       <label>Koch / Köchin</label>
       <input type="text" id="rzKoch" placeholder="Wer kocht das Gericht?">
       <label>Für wie viele Personen ist das Rezept ursprünglich?</label>
-      <input type="number" id="rzPersonen" value="8" min="1" max="20">
-      <p class="modal-hint">Die Zutaten werden automatisch auf 8 Personen umgerechnet.</p>
+      <input type="number" id="rzPersonen" value="6" min="1" max="20">
+      <p class="modal-hint">Die Zutaten werden automatisch auf 6 Personen umgerechnet.</p>
       <div class="modal-actions">
         <button class="modal-btn-cancel" onclick="closeModal('modalRezept')">Abbrechen</button>
         <button class="modal-btn-primary" onclick="wizardNext(1)">Weiter →</button>
@@ -285,7 +285,7 @@
 <header>
   <img class="logo" src="https://htlgeyvr.gensparkclaw.com/dersmutje.png" alt="Smutje Logo">
   <h1>⚓ Barcolana 2026</h1>
-  <div class="subtitle">8 Personen · 8 Tage · ab 06.10.2026 · Punat, Kroatien</div>
+  <div class="subtitle">6 Personen · 8 Tage · ab 06.10.2026 · Punat, Kroatien</div>
   <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
   <div class="progress-label" id="progressLabel">Lade...</div>
 </header>
@@ -684,7 +684,7 @@
 <script>
 const LIST_ID = 'f9268d10';
 const LIST_FILENAME = 'Barcolana_2026';
-const CREW_ANZAHL = 8;
+const CREW_ANZAHL = 6;
 const STATE_PROXY = 'https://htlgeyvr.gensparkclaw.com/smutje-api/' + LIST_FILENAME;
 let dynamicItemCounter = 10000;
 let currentKategorie = '';
