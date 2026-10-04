@@ -774,7 +774,7 @@ const LIST_ID = 'f6b8ee7b039ab192';
 const LIST_FILENAME = 'f6b8ee7b039ab192';
 const CREW_ANZAHL = 2;
 const STATE_PROXY = 'https://htlgeyvr.gensparkclaw.com/smutje-api/' + LIST_FILENAME;
-let dynamicItemCounter = 10000;
+let dynamicItemCounter = Date.now();
 let currentKategorie = '';
 let currentKategorieLabel = '';
 
@@ -791,16 +791,19 @@ let _pendingState = null;
 function scheduleSyncToGitHub(state) {
   _pendingState = state;
   clearTimeout(_syncTimer);
-  _syncTimer = setTimeout(() => { _syncTimer = null; const s = _pendingState; _pendingState = null; syncStateToProxy(s); }, 400);
+  _syncTimer = setTimeout(() => { _syncTimer = null; const s = _pendingState; _pendingState = null; syncStateToProxy(s); }, 250);
 }
 function flushSync() {
   if (_syncTimer) { clearTimeout(_syncTimer); _syncTimer = null; }
   if (_pendingState) { const s = _pendingState; _pendingState = null; syncStateToProxy(s); }
+  else { syncStateToProxy(getState()); }
 }
 // Nie Eingaben verlieren: sofort senden, wenn der Tab versteckt/geschlossen wird
 window.addEventListener('pagehide', flushSync);
 window.addEventListener('beforeunload', flushSync);
 document.addEventListener('visibilitychange', function() { if (document.hidden) flushSync(); });
+// Sicherheitsnetz: regelmäßig den aktuellen State sichern
+setInterval(function() { try { syncStateToProxy(getState()); } catch(e) {} }, 8000);
 
 async function syncStateToProxy(state) {
   try {
@@ -849,8 +852,8 @@ function deleteItem(id, event) {
   event.stopPropagation();
   if (!confirm('Diesen Artikel von der Liste entfernen?')) return;
   const state = getState();
-  state['del_' + id] = true;
-  delete state[id];
+  if (state['dyn_' + id]) { delete state['dyn_' + id]; }
+  else { state['del_' + id] = true; delete state[id]; }
   setState(state);
   const el = document.getElementById('item_' + id);
   if (el) el.classList.add('deleted');
