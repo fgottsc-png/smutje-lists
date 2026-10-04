@@ -1518,10 +1518,10 @@ window.onload = async function() {
   // State aus GitHub laden (Vorrang über lokalen State)
   const remoteState = await loadStateFromGitHub();
   if (remoteState && Object.keys(remoteState).length > 0) {
-    // Merge statt Überschreiben: lokal Gewähltes/Editiertes hat Vorrang,
-    // damit ein veralteter/leerer Remote-Stand NIE lokale Eingaben löscht.
+    // Server ist Quelle der Wahrheit (verhindert, dass ein veralteter lokaler Stand
+    // Einträge von Dagobert/anderen Geräten überschreibt). Lokal nur ergänzen.
     const localState = getState();
-    const merged = Object.assign({}, remoteState, localState);
+    const merged = Object.assign({}, localState, remoteState);
     localStorage.setItem('smutje_' + LIST_ID, JSON.stringify(merged));
     syncStateToProxy(merged); // Remote an den gemergten Stand angleichen
   }
