@@ -752,10 +752,12 @@ function updateProgress() {
   document.getElementById('progressFill').style.width = (total > 0 ? checked/total*100 : 0) + '%';
   document.getElementById('progressLabel').textContent = checked + ' von ' + total + ' Punkten erledigt';
   document.querySelectorAll('.section').forEach(sec => {
+    const badge = sec.querySelector('.badge');
+    if (!badge) return;
+    if (sec.id === 'section-gekauft') { badge.textContent = sec.querySelectorAll('.item').length; return; }
     const items = [...sec.querySelectorAll('.item')].filter(i => !i.classList.contains('deleted') && !i.classList.contains('gekauft'));
     const done = items.filter(i => i.classList.contains('checked')).length;
-    const badge = sec.querySelector('.badge');
-    if (badge) badge.textContent = done + '/' + items.length;
+    badge.textContent = done + '/' + items.length;
   });
 }
 
