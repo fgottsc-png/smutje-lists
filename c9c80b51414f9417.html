@@ -144,6 +144,15 @@
 
   footer { text-align: center; padding: 20px 16px; font-size: 0.75em; color: #1a3a5c; opacity: 0.6; }
   .reset-btn { display: block; margin: 0 auto 16px; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; padding: 8px 20px; font-size: 0.85em; cursor: pointer; font-family: 'Open Sans', sans-serif; font-weight: 600; }
+  /* GEKAUFT (24h) */
+  .item.gekauft .item-name { text-decoration: line-through; color: #aaa; }
+  .reactivate-btn { background: #f0f4f8; color: #1a3a5c; border: none; border-radius: 6px; padding: 4px 9px; font-size: 0.95em; cursor: pointer; flex-shrink: 0; align-self: center; }
+  .reactivate-btn:hover { background: #1a3a5c; color: #f9bf33; }
+  .hdr-gray { background: #6b7280 !important; }
+  /* REZEPT-STATUS */
+  .recipe-status { font-size: 0.82em; color: #2d6a4f; font-weight: 700; margin-bottom: 6px; }
+  .btn-gekocht { background: #2d6a4f; color: #fff; border: none; border-radius: 8px; padding: 7px 14px; font-size: 0.78em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; }
+  .btn-nochmal { background: #e85d04 !important; color: #fff !important; }
 </style>
 </head>
 <body>
@@ -737,13 +746,13 @@ async function loadStateFromGitHub() {
 
 function updateProgress() {
   const state = getState();
-  const allItems = document.querySelectorAll('.item:not(.deleted)');
+  const allItems = document.querySelectorAll('.item:not(.deleted):not(.gekauft)');
   const checked = [...allItems].filter(i => i.classList.contains('checked')).length;
   const total = allItems.length;
   document.getElementById('progressFill').style.width = (total > 0 ? checked/total*100 : 0) + '%';
   document.getElementById('progressLabel').textContent = checked + ' von ' + total + ' Punkten erledigt';
   document.querySelectorAll('.section').forEach(sec => {
-    const items = [...sec.querySelectorAll('.item')].filter(i => !i.classList.contains('deleted'));
+    const items = [...sec.querySelectorAll('.item')].filter(i => !i.classList.contains('deleted') && !i.classList.contains('gekauft'));
     const done = items.filter(i => i.classList.contains('checked')).length;
     const badge = sec.querySelector('.badge');
     if (badge) badge.textContent = done + '/' + items.length;
@@ -754,10 +763,12 @@ function toggleItem(id) {
   const state = getState();
   if (state['del_' + id]) return;
   state[id] = !state[id];
+  if (state[id]) { state['ts_' + id] = Date.now(); } else { delete state['ts_' + id]; }
   setState(state);
   const el = document.getElementById('item_' + id);
   if (el) el.classList.toggle('checked', state[id]);
   updateProgress();
+  applyGekauftSection();
 }
 
 function deleteItem(id, event) {
@@ -778,6 +789,7 @@ function resetAll() {
     Object.keys(state).forEach(k => { if (!k.startsWith('del_') && !k.startsWith('rezept_') && !k.startsWith('dyn_') && !k.startsWith('edit_') && !k.startsWith('mb_')) delete state[k]; });
     setState(state);
     document.querySelectorAll('.item:not(.deleted)').forEach(i => i.classList.remove('checked'));
+    applyGekauftSection();
     updateProgress();
   }
 }
@@ -1643,6 +1655,126 @@ function restoreDynamicItems(state) {
   enhanceAllEinkaufItems();
 }
 
+/* ===== Gekauft (24h) ===== */
+const GEKAUFT_MS = 24*60*60*1000;
+function ensureGekauftSection(){
+  let sec = document.getElementById('section-gekauft');
+  if (sec) return sec;
+  const tab = document.getElementById('tab-einkauf');
+  sec = document.createElement('div');
+  sec.className = 'section'; sec.id = 'section-gekauft'; sec.style.display = 'none';
+  sec.innerHTML = '<div class="section-header hdr-gray">🛒 Gekauft<span class="badge">0</span></div>';
+  tab.appendChild(sec);
+  return sec;
+}
+function restoreItemToOrig(el){
+  el.classList.remove('gekauft');
+  const rb = el.querySelector('.reactivate-btn'); if (rb) rb.remove();
+  const orig = el.dataset.origsect ? document.getElementById(el.dataset.origsect) : null;
+  if (orig) orig.appendChild(el);
+}
+function applyGekauftSection(){
+  const state = getState();
+  const now = Date.now();
+  const sec = ensureGekauftSection();
+  sec.querySelectorAll('.item').forEach(el=>{
+    const id = el.id.replace('item_','');
+    const ts = state['ts_'+id];
+    if (!(state[id] && ts && (now-ts) > GEKAUFT_MS)) restoreItemToOrig(el);
+  });
+  document.querySelectorAll('#tab-einkauf .item').forEach(el=>{
+    if (el.closest('#section-gekauft')) return;
+    const id = el.id.replace('item_','');
+    const ts = state['ts_'+id];
+    if (state[id] && ts && (now-ts) > GEKAUFT_MS){
+      if (!el.dataset.origsect) { const s = el.closest('.section'); el.dataset.origsect = s ? s.id : ''; }
+      el.classList.add('gekauft');
+      if (!el.querySelector('.reactivate-btn')){
+        const b = document.createElement('button');
+        b.className = 'reactivate-btn'; b.title = 'Zurück auf die Einkaufsliste'; b.textContent = '↺';
+        b.onclick = function(e){ e.stopPropagation(); reactivateItem(id); };
+        el.appendChild(b);
+      }
+      sec.appendChild(el);
+    }
+  });
+  const n = sec.querySelectorAll('.item').length;
+  sec.style.display = n ? '' : 'none';
+  const badge = sec.querySelector('.badge'); if (badge) badge.textContent = n;
+  updateProgress();
+}
+function reactivateItem(id){
+  const state = getState();
+  state[id] = false; delete state['ts_'+id];
+  setState(state);
+  const el = document.getElementById('item_'+id);
+  if (el){ el.classList.remove('checked'); restoreItemToOrig(el); }
+  applyGekauftSection();
+}
+
+/* ===== Rezept-Status (gekocht / nochmal kochen) ===== */
+function recipePlanFn(rid){ return getState()['dyn_rezept_'+rid] ? rezeptEinplanenDyn : rezeptEinplanen; }
+function renderRezeptCard(rid){
+  const card = document.getElementById('rezept_'+rid);
+  if (!card) return;
+  const state = getState();
+  const done = !!state['recipe_done_'+rid];
+  const planned = !!state['rezept_eingeplant_'+rid];
+  const st = card.querySelector('.recipe-status');
+  const btn = card.querySelector('.btn-einplanen');
+  if (done){
+    if (st) st.innerHTML = '✅ <b>Gekocht / gemacht</b>';
+    document.querySelectorAll('.rezept-fresh-'+rid).forEach(it=>{ it.style.display = 'none'; });
+    if (btn){ btn.textContent = '🔄 Nochmal kochen'; btn.classList.add('btn-nochmal'); btn.classList.remove('eingeplant'); btn.onclick = function(e){ e.stopPropagation(); nochmalKochen(rid); }; }
+  } else {
+    if (st) st.innerHTML = '';
+    if (planned) document.querySelectorAll('.rezept-fresh-'+rid).forEach(it=>{ it.style.display = 'flex'; });
+    if (btn){
+      btn.classList.remove('btn-nochmal');
+      const fn = recipePlanFn(rid);
+      btn.onclick = function(e){ e.stopPropagation(); fn(rid, btn); };
+      if (planned){ btn.textContent = '✓ Eingeplant – antippen zum Deaktivieren'; btn.classList.add('eingeplant'); }
+      else { btn.textContent = '🛒 Jetzt einplanen – Zutaten zur Einkaufsliste hinzufügen'; btn.classList.remove('eingeplant'); }
+    }
+  }
+}
+function markGekocht(rid){
+  const state = getState();
+  state['recipe_done_'+rid] = true;
+  state['rezept_eingeplant_'+rid] = false;
+  setState(state);
+  renderRezeptCard(rid);
+  updateProgress();
+}
+function nochmalKochen(rid){
+  const state = getState();
+  state['recipe_done_'+rid] = false;
+  state['rezept_eingeplant_'+rid] = true;
+  setState(state);
+  renderRezeptCard(rid);
+  updateProgress();
+}
+function enhanceRecipes(){
+  document.querySelectorAll('.info-card').forEach(card=>{
+    const rc = card.querySelector('.recipe-card');
+    if (!rc) return;
+    const rid = (card.id || '').replace('rezept_','');
+    if (!rid) return;
+    if (!rc.querySelector('.recipe-status')){
+      const st = document.createElement('div'); st.className = 'recipe-status';
+      rc.insertBefore(st, rc.firstChild);
+    }
+    const actions = rc.querySelector('.recipe-actions');
+    if (actions && !actions.querySelector('.btn-gekocht')){
+      const b = document.createElement('button');
+      b.className = 'btn-gekocht'; b.textContent = '✅ Gekocht / gemacht';
+      b.onclick = function(e){ e.stopPropagation(); markGekocht(rid); };
+      actions.insertBefore(b, actions.firstChild);
+    }
+    renderRezeptCard(rid);
+  });
+}
+
 window.onload = async function() {
   // State aus GitHub laden (Vorrang über lokalen State)
   const remoteState = await loadStateFromGitHub();
@@ -1693,6 +1825,8 @@ window.onload = async function() {
       document.querySelectorAll('.rezept-fresh-' + rid).forEach(item => { item.style.display = 'flex'; });
     }
   });
+  enhanceRecipes();
+  applyGekauftSection();
   updateProgress();
 };
 </script>
