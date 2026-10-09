@@ -150,8 +150,10 @@
   .reactivate-btn:hover { background: #1a3a5c; color: #f9bf33; }
   .hdr-gray { background: #6b7280 !important; }
   /* REZEPT-STATUS */
-  .recipe-status { font-size: 0.82em; color: #2d6a4f; font-weight: 700; margin-bottom: 6px; }
-  .btn-gekocht { background: #2d6a4f; color: #fff; border: none; border-radius: 8px; padding: 7px 14px; font-size: 0.78em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; }
+  .recipe-status { display: inline-block; font-size: 0.8em; color: #fff; background: #2d6a4f; font-weight: 700; margin-bottom: 8px; padding: 4px 12px; border-radius: 999px; }
+  .recipe-status:empty { display: none; }
+  .btn-gekocht { background: #fff; color: #2d6a4f; border: 2px solid #2d6a4f; border-radius: 8px; padding: 6px 14px; font-size: 0.78em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; }
+  .btn-gekocht.active { background: #2d6a4f; color: #fff; }
   .btn-nochmal { background: #e85d04 !important; color: #fff !important; }
 </style>
 </head>
@@ -1743,6 +1745,11 @@ function renderRezeptCard(rid){
   const planned = !!state['rezept_eingeplant_'+rid];
   const st = card.querySelector('.recipe-status');
   const btn = card.querySelector('.btn-einplanen');
+  const gbtn = card.querySelector('.btn-gekocht');
+  if (gbtn){
+    if (done){ gbtn.classList.add('active'); gbtn.textContent = '✅ Gekocht / gemacht'; }
+    else { gbtn.classList.remove('active'); gbtn.textContent = '○ Gekocht / gemacht'; }
+  }
   if (done){
     if (st) st.innerHTML = '✅ <b>Gekocht / gemacht</b>';
     document.querySelectorAll('.rezept-fresh-'+rid).forEach(it=>{ it.style.display = 'none'; });
@@ -1761,8 +1768,14 @@ function renderRezeptCard(rid){
 }
 function markGekocht(rid){
   const state = getState();
-  state['recipe_done_'+rid] = true;
-  state['rezept_eingeplant_'+rid] = false;
+  const done = !!state['recipe_done_'+rid];
+  if (done){
+    // Umschalten: wieder auf "nicht gekocht"
+    state['recipe_done_'+rid] = false;
+  } else {
+    state['recipe_done_'+rid] = true;
+    state['rezept_eingeplant_'+rid] = false;
+  }
   setState(state);
   renderRezeptCard(rid);
   updateProgress();
@@ -1788,7 +1801,7 @@ function enhanceRecipes(){
     const actions = rc.querySelector('.recipe-actions');
     if (actions && !actions.querySelector('.btn-gekocht')){
       const b = document.createElement('button');
-      b.className = 'btn-gekocht'; b.textContent = '✅ Gekocht / gemacht';
+      b.className = 'btn-gekocht'; b.textContent = '○ Gekocht / gemacht';
       b.onclick = function(e){ e.stopPropagation(); markGekocht(rid); };
       actions.insertBefore(b, actions.firstChild);
     }
