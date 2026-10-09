@@ -715,9 +715,9 @@ function flushSync() {
 window.addEventListener('pagehide', flushSync);
 window.addEventListener('beforeunload', flushSync);
 document.addEventListener('visibilitychange', function() { if (document.hidden) flushSync(); });
-// Sicherheitsnetz: regelmäßig den aktuellen State sichern
-setInterval(function() { try { syncStateToProxy(getState()); } catch(e) {} }, 8000);
-
+// Kein periodischer Voll-Push mehr: verhindert, dass ein offener Tab mit veraltetem
+// lokalem Stand Server-Änderungen (z. B. "gekocht"-Status) überschreibt.
+// Gesendet wird nur noch bei echten Änderungen (setState) und beim Verlassen der Seite.
 async function syncStateToProxy(state) {
   try {
     await fetch(STATE_PROXY, {
