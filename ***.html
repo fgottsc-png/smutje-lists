@@ -352,7 +352,7 @@
   <button class="delete-btn" onclick="deleteItem('e_13', event)" title="Entfernen">🗑</button>
 </div><div class="item" id="item_e_14">
   <div class="checkbox" onclick="toggleItem('e_14')"></div>
-  <div class="item-info" onclick="toggleItem('e_14')"><div class="item-name">Eier</div><div class='item-meta'>18 Stück</div></div>
+  <div class="item-info" onclick="toggleItem('e_14')"><div class="item-name">Eier</div><div class='item-meta'>30 Stück</div></div>
   <button class="delete-btn" onclick="deleteItem('e_14', event)" title="Entfernen">🗑</button>
 </div><div class="item" id="item_e_15">
   <div class="checkbox" onclick="toggleItem('e_15')"></div>
@@ -557,6 +557,21 @@
     <div class="recipe-actions">
       <button class="btn-edit-rezept" onclick="openStaticRezeptEdit('r1')">✏️ Bearbeiten</button>
       <button class="btn-delete-rezept" onclick="deleteStaticRezept('r1')">🗑 Löschen</button>
+    </div>
+  </div>
+</div><div class="info-card" id="rezept_r2" data-rezept='{"titel": "Rührei", "koch": "", "anpassung": "", "quelle": "Crew-Wunsch (Ralf)"}'>
+  <div class="recipe-card">
+    <div class="recipe-title">🍽️ Rührei</div>
+    <div class="recipe-meta">Koch: <span class="recipe-cook"></span>  ·  Quelle: Crew-Wunsch (Ralf)</div>
+    
+    <div class='recipe-ingredients'><div>🛒 Eier 30 Stück 🥬</div><div>🛒 Butter</div><div>🛒 Salz, Pfeffer</div><div>🛒 Schnittlauch / Paprika</div></div>
+    <button class="btn-einplanen" id="btn_einplanen_r2" onclick="rezeptEinplanen('r2', this)">
+  🛒 Jetzt einplanen – Zutaten zur Einkaufsliste hinzufügen
+</button>
+<div class="einplanen-hinweis">⚠️ Nur drücken wenn das Gericht in den nächsten 48h gekocht wird</div>
+    <div class="recipe-actions">
+      <button class="btn-edit-rezept" onclick="openStaticRezeptEdit('r2')">✏️ Bearbeiten</button>
+      <button class="btn-delete-rezept" onclick="deleteStaticRezept('r2')">🗑 Löschen</button>
     </div>
   </div>
 </div>
