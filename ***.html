@@ -150,8 +150,10 @@
   .reactivate-btn:hover { background: #1a3a5c; color: #f9bf33; }
   .hdr-gray { background: #6b7280 !important; }
   /* REZEPT-STATUS */
-  .recipe-status { font-size: 0.82em; color: #2d6a4f; font-weight: 700; margin-bottom: 6px; }
-  .btn-gekocht { background: #2d6a4f; color: #fff; border: none; border-radius: 8px; padding: 7px 14px; font-size: 0.78em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; }
+  .recipe-status { display: inline-block; font-size: 0.8em; color: #fff; background: #2d6a4f; font-weight: 700; margin-bottom: 8px; padding: 4px 12px; border-radius: 999px; }
+  .recipe-status:empty { display: none; }
+  .btn-gekocht { background: #fff; color: #2d6a4f; border: 2px solid #2d6a4f; border-radius: 8px; padding: 6px 14px; font-size: 0.78em; font-weight: 700; cursor: pointer; font-family: 'Open Sans', sans-serif; }
+  .btn-gekocht.active { background: #2d6a4f; color: #fff; }
   .btn-nochmal { background: #e85d04 !important; color: #fff !important; }
 </style>
 </head>
@@ -463,7 +465,7 @@
   <div class="checkbox" onclick="toggleItem('e_39')"></div>
   <div class="item-info" onclick="toggleItem('e_39')"><div class="item-name">Reis</div><div class='item-meta'>500 g</div></div>
   <button class="delete-btn" onclick="deleteItem('e_39', event)" title="Entfernen">🗑</button>
-</div></div><div class="section" id="section-Getr_nke"><div class="section-header hdr-red">🍺 Getränke<span class="badge">0/11</span><button class="add-btn-sec" onclick="openAddArtikel('Getränke', '🍺 Getränke')" title="Hinzufügen">＋</button></div><div class="item" id="item_e_40">
+</div></div><div class="section" id="section-Getr_nke"><div class="section-header hdr-red">🍺 Getränke<span class="badge">0/12</span><button class="add-btn-sec" onclick="openAddArtikel('Getränke', '🍺 Getränke')" title="Hinzufügen">＋</button></div><div class="item" id="item_e_40">
   <div class="checkbox" onclick="toggleItem('e_40')"></div>
   <div class="item-info" onclick="toggleItem('e_40')"><div class="item-name">Bier</div><div class='item-meta'>2 Paletten</div></div>
   <button class="delete-btn" onclick="deleteItem('e_40', event)" title="Entfernen">🗑</button>
@@ -507,76 +509,80 @@
   <div class="checkbox" onclick="toggleItem('e_50')"></div>
   <div class="item-info" onclick="toggleItem('e_50')"><div class="item-name">Ouzo</div><div class='item-meta'>1 Flasche</div></div>
   <button class="delete-btn" onclick="deleteItem('e_50', event)" title="Entfernen">🗑</button>
-</div></div><div class="section"><div class="section-header hdr-orange">🌅 Frisches ⚠️ – nur die nächsten 2 Tage<span class="badge">0/0</span></div><div class="item rezept-fresh-r0" id="item_e_51" style="display:none; background:#fff8e1;">
+</div><div class="item" id="item_e_51">
   <div class="checkbox" onclick="toggleItem('e_51')"></div>
-  <div class="item-info" onclick="toggleItem('e_51')">
-    <div class="item-name">Hackfleisch 800 g</div>
-    <div class="item-meta"><span class="fuer-rezept">🍽️ für: Nudeln Bolognese</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
-  </div>
+  <div class="item-info" onclick="toggleItem('e_51')"><div class="item-name">Kräutertee</div><div class='item-meta'>1 Packung</div></div>
   <button class="delete-btn" onclick="deleteItem('e_51', event)" title="Entfernen">🗑</button>
-</div><div class="item rezept-fresh-r0" id="item_e_52" style="display:none; background:#fff8e1;">
+</div></div><div class="section"><div class="section-header hdr-orange">🌅 Frisches ⚠️ – nur die nächsten 2 Tage<span class="badge">0/0</span></div><div class="item rezept-fresh-r0" id="item_e_52" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_52')"></div>
   <div class="item-info" onclick="toggleItem('e_52')">
-    <div class="item-name">Zwiebeln 3</div>
+    <div class="item-name">Hackfleisch 800 g</div>
     <div class="item-meta"><span class="fuer-rezept">🍽️ für: Nudeln Bolognese</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
   </div>
   <button class="delete-btn" onclick="deleteItem('e_52', event)" title="Entfernen">🗑</button>
 </div><div class="item rezept-fresh-r0" id="item_e_53" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_53')"></div>
   <div class="item-info" onclick="toggleItem('e_53')">
-    <div class="item-name">Salat (Kopfsalat) 2</div>
+    <div class="item-name">Zwiebeln 3</div>
     <div class="item-meta"><span class="fuer-rezept">🍽️ für: Nudeln Bolognese</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
   </div>
   <button class="delete-btn" onclick="deleteItem('e_53', event)" title="Entfernen">🗑</button>
 </div><div class="item rezept-fresh-r0" id="item_e_54" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_54')"></div>
   <div class="item-info" onclick="toggleItem('e_54')">
-    <div class="item-name">Tomaten 4</div>
+    <div class="item-name">Salat (Kopfsalat) 2</div>
     <div class="item-meta"><span class="fuer-rezept">🍽️ für: Nudeln Bolognese</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
   </div>
   <button class="delete-btn" onclick="deleteItem('e_54', event)" title="Entfernen">🗑</button>
 </div><div class="item rezept-fresh-r0" id="item_e_55" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_55')"></div>
   <div class="item-info" onclick="toggleItem('e_55')">
-    <div class="item-name">Gurken 2</div>
+    <div class="item-name">Tomaten 4</div>
     <div class="item-meta"><span class="fuer-rezept">🍽️ für: Nudeln Bolognese</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
   </div>
   <button class="delete-btn" onclick="deleteItem('e_55', event)" title="Entfernen">🗑</button>
-</div><div class="item rezept-fresh-r1" id="item_e_56" style="display:none; background:#fff8e1;">
+</div><div class="item rezept-fresh-r0" id="item_e_56" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_56')"></div>
   <div class="item-info" onclick="toggleItem('e_56')">
-    <div class="item-name">Kartoffeln 2,5 kg</div>
-    <div class="item-meta"><span class="fuer-rezept">🍽️ für: Kartoffeln mit Quark und Gurkensalat</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
+    <div class="item-name">Gurken 2</div>
+    <div class="item-meta"><span class="fuer-rezept">🍽️ für: Nudeln Bolognese</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
   </div>
   <button class="delete-btn" onclick="deleteItem('e_56', event)" title="Entfernen">🗑</button>
 </div><div class="item rezept-fresh-r1" id="item_e_57" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_57')"></div>
   <div class="item-info" onclick="toggleItem('e_57')">
-    <div class="item-name">Gurken 3</div>
+    <div class="item-name">Kartoffeln 2,5 kg</div>
     <div class="item-meta"><span class="fuer-rezept">🍽️ für: Kartoffeln mit Quark und Gurkensalat</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
   </div>
   <button class="delete-btn" onclick="deleteItem('e_57', event)" title="Entfernen">🗑</button>
 </div><div class="item rezept-fresh-r1" id="item_e_58" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_58')"></div>
   <div class="item-info" onclick="toggleItem('e_58')">
-    <div class="item-name">Zwiebeln 2</div>
+    <div class="item-name">Gurken 3</div>
     <div class="item-meta"><span class="fuer-rezept">🍽️ für: Kartoffeln mit Quark und Gurkensalat</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
   </div>
   <button class="delete-btn" onclick="deleteItem('e_58', event)" title="Entfernen">🗑</button>
-</div><div class="item rezept-fresh-r3" id="item_e_59" style="display:none; background:#fff8e1;">
+</div><div class="item rezept-fresh-r1" id="item_e_59" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_59')"></div>
   <div class="item-info" onclick="toggleItem('e_59')">
-    <div class="item-name">Hähnchenbrust 1,2 kg</div>
-    <div class="item-meta"><span class="fuer-rezept">🍽️ für: Curry mit Reis</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
+    <div class="item-name">Zwiebeln 2</div>
+    <div class="item-meta"><span class="fuer-rezept">🍽️ für: Kartoffeln mit Quark und Gurkensalat</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
   </div>
   <button class="delete-btn" onclick="deleteItem('e_59', event)" title="Entfernen">🗑</button>
 </div><div class="item rezept-fresh-r3" id="item_e_60" style="display:none; background:#fff8e1;">
   <div class="checkbox" onclick="toggleItem('e_60')"></div>
   <div class="item-info" onclick="toggleItem('e_60')">
-    <div class="item-name">Gemüse (Paprika, Zucchini, Karotten)</div>
+    <div class="item-name">Hähnchenbrust 1,2 kg</div>
     <div class="item-meta"><span class="fuer-rezept">🍽️ für: Curry mit Reis</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
   </div>
   <button class="delete-btn" onclick="deleteItem('e_60', event)" title="Entfernen">🗑</button>
+</div><div class="item rezept-fresh-r3" id="item_e_61" style="display:none; background:#fff8e1;">
+  <div class="checkbox" onclick="toggleItem('e_61')"></div>
+  <div class="item-info" onclick="toggleItem('e_61')">
+    <div class="item-name">Gemüse (Paprika, Zucchini, Karotten)</div>
+    <div class="item-meta"><span class="fuer-rezept">🍽️ für: Curry mit Reis</span> · <span style="color:#e85d04;font-weight:700;">⚠️ Frischware – erst kurz vor Abfahrt kaufen</span></div>
+  </div>
+  <button class="delete-btn" onclick="deleteItem('e_61', event)" title="Entfernen">🗑</button>
 </div></div>
 <button class="reset-btn" onclick="resetAll()">↺ Alle Häkchen zurücksetzen</button>
 </div>
@@ -704,10 +710,14 @@
   <div class="crew-avatar">U</div>
   <div><div class="crew-name">Ulrike Welle <span style="color:#888;font-weight:400;font-size:.8em">· Crew (kein WhatsApp)</span></div>
   <div class="crew-tags"></div></div>
+</div><div class="crew-member">
+  <div class="crew-avatar">F</div>
+  <div><div class="crew-name">Frauke Fock <span style="color:#888;font-weight:400;font-size:.8em">· Crew</span></div>
+  <div class="crew-tags"></div></div>
 </div></div>
 </div>
 
-<footer>Erstellt von Smutje · seebaertv ⚓ · Stand: 09.10.2026</footer>
+<footer>Erstellt von Smutje · seebaertv ⚓ · Stand: 10.10.2026</footer>
 
 <script>
 const LIST_ID = '***';
@@ -742,9 +752,9 @@ function flushSync() {
 window.addEventListener('pagehide', flushSync);
 window.addEventListener('beforeunload', flushSync);
 document.addEventListener('visibilitychange', function() { if (document.hidden) flushSync(); });
-// Sicherheitsnetz: regelmäßig den aktuellen State sichern
-setInterval(function() { try { syncStateToProxy(getState()); } catch(e) {} }, 8000);
-
+// Kein periodischer Voll-Push mehr: verhindert, dass ein offener Tab mit veraltetem
+// lokalem Stand Server-Änderungen (z. B. "gekocht"-Status) überschreibt.
+// Gesendet wird nur noch bei echten Änderungen (setState) und beim Verlassen der Seite.
 async function syncStateToProxy(state) {
   try {
     await fetch(STATE_PROXY, {
@@ -1743,6 +1753,11 @@ function renderRezeptCard(rid){
   const planned = !!state['rezept_eingeplant_'+rid];
   const st = card.querySelector('.recipe-status');
   const btn = card.querySelector('.btn-einplanen');
+  const gbtn = card.querySelector('.btn-gekocht');
+  if (gbtn){
+    if (done){ gbtn.classList.add('active'); gbtn.textContent = '✅ Gekocht / gemacht'; }
+    else { gbtn.classList.remove('active'); gbtn.textContent = '○ Gekocht / gemacht'; }
+  }
   if (done){
     if (st) st.innerHTML = '✅ <b>Gekocht / gemacht</b>';
     document.querySelectorAll('.rezept-fresh-'+rid).forEach(it=>{ it.style.display = 'none'; });
@@ -1761,8 +1776,14 @@ function renderRezeptCard(rid){
 }
 function markGekocht(rid){
   const state = getState();
-  state['recipe_done_'+rid] = true;
-  state['rezept_eingeplant_'+rid] = false;
+  const done = !!state['recipe_done_'+rid];
+  if (done){
+    // Umschalten: wieder auf "nicht gekocht"
+    state['recipe_done_'+rid] = false;
+  } else {
+    state['recipe_done_'+rid] = true;
+    state['rezept_eingeplant_'+rid] = false;
+  }
   setState(state);
   renderRezeptCard(rid);
   updateProgress();
@@ -1788,7 +1809,7 @@ function enhanceRecipes(){
     const actions = rc.querySelector('.recipe-actions');
     if (actions && !actions.querySelector('.btn-gekocht')){
       const b = document.createElement('button');
-      b.className = 'btn-gekocht'; b.textContent = '✅ Gekocht / gemacht';
+      b.className = 'btn-gekocht'; b.textContent = '○ Gekocht / gemacht';
       b.onclick = function(e){ e.stopPropagation(); markGekocht(rid); };
       actions.insertBefore(b, actions.firstChild);
     }
